@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PVF Model Operations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body class="layout-dev ux-v2" data-default-dataset="{{ default_dataset_path }}">
+    <main class="shell-v2">
+      <aside class="rail-v2">
+        <div class="rail-brand">
+          <span class="rail-logo">PVF</span>
+          <div>
+            <strong>Model Ops</strong>
+            <span>Training and Release</span>
+          </div>
+        </div>
+        <nav class="rail-nav">
+          <a href="/">Assessment Workspace</a>
+          <a class="active" href="/dev">Model Operations</a>
+        </nav>
+      </aside>
+
+      <section class="workspace-v2">
+        <header class="top-v2">
+          <div>
+            <p class="kicker-v2">Model Operations</p>
+            <h1>Training and Release Control</h1>
+          </div>
+          <a class="top-link-v2" href="/">Risk Desk</a>
+        </header>
+
+        <section class="ops-kpi-grid" aria-label="Model operations summary">
+          <article class="ops-kpi">
+            <span>Active Target</span>
+            <strong id="ops-active-target">Loading</strong>
+          </article>
+          <article class="ops-kpi">
+            <span>Experiment Runs</span>
+            <strong id="ops-experiment-count">-</strong>
+          </article>
+          <article class="ops-kpi">
+            <span>Active Score</span>
+            <strong id="ops-best-score">-</strong>
+          </article>
+          <article class="ops-kpi">
+            <span>Latest Training</span>
+            <strong id="ops-last-trained">-</strong>
+          </article>
+        </section>
+
+        <section class="panel-v2">
+          <div class="panel-head-v2">
+            <h2>Dataset Profile</h2>
+            <span id="ops-dataset-name">Default dataset</span>
+          </div>
+          <div class="dev-grid">
+            <label>
+              Dataset Path
+              <input id="dev-dataset-path" type="text" />
+            </label>
+          </div>
+          <div class="worker-actions">
+            <button id="dev-profile-btn" class="btn">Profile Dataset</button>
+          </div>
+          <div id="dev-profile-output" class="output"></div>
+        </section>
+
+        <section class="panel-v2">
+          <div class="panel-head-v2">
+            <h2>Train Candidate Model</h2>
+          </div>
+          <div class="dev-grid">
+            <label>
+              Dataset Path
+              <input id="dev-train-dataset-path" type="text" />
+            </label>
+            <label>
+              Target Column
+              <input id="dev-target-column" type="text" placeholder="e.g. status" />
+            </label>
+            <label>
+              Task Type
+              <select id="dev-task-type">
+                <option value="">Auto</option>
+                <option value="classification">Classification</option>
+                <option value="regression">Regression</option>
+              </select>
+            </label>
+            <label>
+              Test Size
+              <input id="dev-test-size" type="number" min="0.05" max="0.5" step="0.05" value="0.2" />
+            </label>
+            <label>
+              Random State
+              <input id="dev-random-state" type="number" value="42" />
+            </label>
+          </div>
+          <div class="worker-actions">
+            <button id="dev-train-btn" class="btn primary">Train Candidate</button>
+          </div>
+          <div id="dev-train-output" class="output"></div>
+        </section>
+
+        <section class="panel-v2">
+          <div class="panel-head-v2">
+            <h2>Active Model Management</h2>
+            <span class="dev-active-label">Live model: <strong id="dev-active-model">Loading...</strong></span>
+          </div>
+          <div class="table-wrap">
+            <table id="dev-experiments-table">
+            <thead>
+              <tr>
+                <th>Experiment</th>
+                <th>Created</th>
+                <th>Target</th>
+                <th>Task</th>
+                <th>Model</th>
+                <th>Metric</th>
+                <th>Rows</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+            </table>
+          </div>
+          <div id="dev-detail-output" class="output"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/js/dev.js"></script>
+  </body>
+</html>

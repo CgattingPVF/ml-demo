@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+models/*.joblib
+reports/experiments.db
+reports/app_settings.json
+uploads/*
+!uploads/.gitkeep
+data/*
+!data/.gitkeep
+projects_export.csv
