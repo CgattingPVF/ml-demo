@@ -9,4 +9,6 @@ uploads/*
 !uploads/.gitkeep
 data/*
 !data/.gitkeep
+!data/projects_export_gdpr_safe.xlsx
+!data/projects_export_gdpr_safe_manifest.json
 projects_export.csv

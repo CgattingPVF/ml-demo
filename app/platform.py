@@ -312,6 +312,189 @@ def _job_price(job_record: dict[str, Any]) -> float | None:
     return None
 
 
+def _non_empty_text_mask(frame: pd.DataFrame, columns: tuple[str, ...]) -> pd.Series:
+    mask = pd.Series([False] * len(frame), index=frame.index)
+    for column in columns:
+        if column in frame.columns:
+            mask = mask | frame[column].fillna("").astype(str).str.strip().ne("")
+    return mask
+
+
+def _team_event_counts(frame: pd.DataFrame) -> tuple[int, int]:
+    hse_mask = _non_empty_text_mask(frame, ("c_hscategory",))
+    if "c_hsincidentdate" in frame.columns:
+        hse_mask = hse_mask | _parse_datetime_series(frame["c_hsincidentdate"]).notna()
+    if "c_riddorreportable" in frame.columns:
+        hse_mask = hse_mask | (_clean_numeric_series(frame["c_riddorreportable"]) > 0).fillna(False)
+
+    damage_mask = _non_empty_text_mask(
+        frame,
+        ("c_damagestatus", "c_damagecategory", "c_damagedescription"),
+    )
+    return int(hse_mask.sum()), int(damage_mask.sum())
+
+
+def _team_leaderboard(
+    df: pd.DataFrame,
+    *,
+    selected_scaffolder: str,
+    job_type: str,
+    outward: str,
+    price: float | None,
+    limit: int = 8,
+) -> dict[str, Any]:
+    if "related_contacts" not in df.columns:
+        return {"summary": {}, "teams": []}
+
+    team_counts = _split_entity_values(df["related_contacts"]).value_counts()
+    if team_counts.empty:
+        return {"summary": {}, "teams": []}
+
+    selected_lower = selected_scaffolder.strip().lower()
+    candidate_names = [str(name) for name in team_counts.head(120).index.tolist()]
+    selected_name = next(
+        (str(name) for name in team_counts.index.tolist() if str(name).strip().lower() == selected_lower),
+        selected_scaffolder,
+    )
+    if selected_name and selected_lower not in {name.strip().lower() for name in candidate_names}:
+        candidate_names.append(selected_name)
+
+    rows: list[dict[str, Any]] = []
+    job_type_lower = job_type.strip().lower()
+    minimum_jobs = 8
+
+    for team in candidate_names:
+        team_df = df[_partner_mask(df, team)].copy()
+        total_jobs = int(len(team_df))
+        if total_jobs < minimum_jobs and team.strip().lower() != selected_lower:
+            continue
+
+        status_masks = (
+            _status_masks(team_df["status"])
+            if "status" in team_df.columns
+            else {
+                "cancelled": pd.Series([False] * total_jobs, index=team_df.index),
+                "completed": pd.Series([False] * total_jobs, index=team_df.index),
+            }
+        )
+        completed_jobs = int(status_masks["completed"].sum())
+        cancelled_jobs = int(status_masks["cancelled"].sum())
+        hse_events, damage_events = _team_event_counts(team_df)
+
+        similar_mask = pd.Series([True] * total_jobs, index=team_df.index)
+        job_type_matches = 0
+        if job_type_lower and "c_scaffoldpurpose" in team_df.columns:
+            purpose_mask = team_df["c_scaffoldpurpose"].fillna("").astype(str).str.lower().eq(job_type_lower)
+            job_type_matches = int(purpose_mask.sum())
+            if job_type_matches >= 3:
+                similar_mask = similar_mask & purpose_mask
+
+        postcode_matches = 0
+        if outward and "c_homeownerpostcode" in team_df.columns:
+            postcode_mask = (
+                team_df["c_homeownerpostcode"]
+                .fillna("")
+                .astype(str)
+                .map(_postcode_outward)
+                .eq(outward)
+            )
+            postcode_matches = int(postcode_mask.sum())
+            if postcode_matches >= 3:
+                similar_mask = similar_mask & postcode_mask
+
+        revenue = (
+            _clean_numeric_series(team_df["budget_revenue"])
+            if "budget_revenue" in team_df.columns
+            else pd.Series(dtype=float)
+        )
+        median_price = float(revenue.median()) if not revenue.dropna().empty else None
+        price_delta_pct = None
+        price_fit = 0.62
+        if price is not None and median_price and median_price > 0:
+            price_delta_pct = ((price - median_price) / median_price) * 100
+            price_fit = max(0.0, 1.0 - min(abs(price_delta_pct) / 45.0, 1.0))
+            price_mask = revenue.between(price * 0.75, price * 1.25)
+            if int(price_mask.sum()) >= 3:
+                similar_mask = similar_mask & price_mask.fillna(False)
+
+        similar_jobs = int(similar_mask.sum())
+        completion_rate = completed_jobs / total_jobs if total_jobs else 0.0
+        cancellation_rate = cancelled_jobs / total_jobs if total_jobs else 0.0
+        hse_rate = hse_events / total_jobs if total_jobs else 0.0
+        damage_rate = damage_events / total_jobs if total_jobs else 0.0
+        job_type_fit = min(job_type_matches / 18.0, 1.0) if job_type_lower else 0.5
+        postcode_fit = min(postcode_matches / 10.0, 1.0) if outward else 0.5
+        similar_fit = min(similar_jobs / 10.0, 1.0)
+        safety_fit = 1.0 - min(hse_rate / 0.12, 1.0)
+        damage_fit = 1.0 - min(damage_rate / 0.08, 1.0)
+
+        fit_score = (
+            completion_rate * 31.0
+            + (1.0 - cancellation_rate) * 17.0
+            + safety_fit * 12.0
+            + damage_fit * 8.0
+            + job_type_fit * 12.0
+            + postcode_fit * 7.0
+            + similar_fit * 8.0
+            + price_fit * 5.0
+        )
+
+        if similar_jobs >= 10 and postcode_matches >= 3:
+            reason = "Strong match across job type, area and price band."
+        elif similar_jobs >= 10 and price_delta_pct is not None:
+            reason = "Strong job-type and price-band match; limited area history."
+        elif similar_jobs >= 10:
+            reason = "Strong job-type history; limited area evidence."
+        elif job_type_matches >= 18:
+            reason = "Strong job-type history; confirm area and commercial fit."
+        elif completion_rate >= 0.86 and cancellation_rate <= 0.08:
+            reason = "Reliable completion record with low cancellation pressure."
+        elif total_jobs < 20:
+            reason = "Limited history; use tighter booking and handover checks."
+        else:
+            reason = "Viable team with mixed matching signals."
+
+        rows.append(
+            {
+                "team": team,
+                "fit_score": round(float(fit_score), 1),
+                "total_jobs": total_jobs,
+                "similar_jobs": similar_jobs,
+                "job_type_matches": job_type_matches,
+                "postcode_matches": postcode_matches,
+                "completion_rate_pct": _pct(completion_rate),
+                "cancellation_rate_pct": _pct(cancellation_rate),
+                "hse_rate_pct": _pct(hse_rate),
+                "damage_rate_pct": _pct(damage_rate),
+                "median_price": round(median_price, 2) if median_price is not None and not pd.isna(median_price) else None,
+                "price_delta_pct": round(float(price_delta_pct), 1) if price_delta_pct is not None else None,
+                "is_selected": team.strip().lower() == selected_lower,
+                "reason": reason,
+            }
+        )
+
+    ranked = sorted(rows, key=lambda item: item["fit_score"], reverse=True)
+    for index, row in enumerate(ranked, start=1):
+        row["rank"] = index
+
+    selected_row = next((row for row in ranked if row["is_selected"]), None)
+    display_rows = ranked[:limit]
+    if selected_row and selected_row not in display_rows:
+        display_rows = display_rows[: max(limit - 1, 0)] + [selected_row]
+        display_rows = sorted(display_rows, key=lambda item: item["rank"])
+
+    best_row = ranked[0] if ranked else None
+    summary = {
+        "teams_compared": len(ranked),
+        "minimum_jobs": minimum_jobs,
+        "best_team": best_row["team"] if best_row else None,
+        "best_fit_score": best_row["fit_score"] if best_row else None,
+        "selected_rank": selected_row["rank"] if selected_row else None,
+        "selected_fit_score": selected_row["fit_score"] if selected_row else None,
+    }
+    return {"summary": summary, "teams": display_rows}
+
+
 def _build_profile_card(df: pd.DataFrame, profile_type: str, name: str) -> dict[str, Any]:
     if profile_type == "client":
         key_col = "contact_name"
@@ -695,6 +878,14 @@ def scaffolder_job_predictions(
     if not recommendations:
         recommendations.append("Proceed with standard booking controls and normal handover checks.")
 
+    leaderboard = _team_leaderboard(
+        df,
+        selected_scaffolder=scaffolder,
+        job_type=job_type,
+        outward=outward,
+        price=price,
+    )
+
     return {
         "scaffolder": scaffolder,
         "job_inputs": {
@@ -717,6 +908,8 @@ def scaffolder_job_predictions(
             "completion_rate_pct": _pct(partner_completed / partner_total),
             "cancellation_rate_pct": _pct(partner_cancelled / partner_total),
         },
+        "team_match_summary": leaderboard["summary"],
+        "team_leaderboard": leaderboard["teams"],
     }
 
 

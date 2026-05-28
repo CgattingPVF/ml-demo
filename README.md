@@ -1,6 +1,6 @@
 # PVF Machine Learning Platform
 
-Production-style ML platform scaffolded around your dataset export (`projects_export.csv`) with:
+Production-style ML platform scaffolded around a GDPR-reduced training workbook (`data/projects_export_gdpr_safe.xlsx`) with:
 
 - Dataset profiling and target recommendation
 - Automated feature engineering (missing value handling, categorical encoding, datetime expansion)
@@ -14,7 +14,7 @@ Production-style ML platform scaffolded around your dataset export (`projects_ex
 - Entity mapping used in the worker flow:
   - `Business` = dataset `contact_name`
   - `Scaffold Partner Company` = dataset `related_contacts`
-- Worker dropdowns are populated from the full dataset export, not the active model sample.
+- Worker dropdowns are populated from the GDPR-safe workbook, not the active model sample.
 
 ## Project Structure
 
@@ -26,7 +26,9 @@ static/             # CSS/JS assets
 models/             # Saved trained models
 reports/            # Registry database
 uploads/            # Uploaded scoring files
-projects_export.csv # Source dataset (UTF-16 tab-delimited export)
+data/projects_export_gdpr_safe.xlsx # GDPR-reduced training workbook
+data/projects_export_gdpr_safe_manifest.json # Reduction/audit notes
+scripts/create_gdpr_safe_dataset.py # Rebuilds the safe workbook from an external raw export
 ```
 
 ## Quick Start
@@ -66,11 +68,18 @@ python app.py
 - `POST /api/profiles/entities` - List client/partner names for profile cards
 - `POST /api/profiles/card` - Generate detailed client/partner profile card
 
-## Notes About Your Dataset
+## Notes About The Dataset
 
-- The provided file appears to be **tab-delimited UTF-16** (not plain UTF-8 CSV).
-- Loader auto-detects encoding and delimiter, so no manual preprocessing is required.
-- With 70k+ rows and many custom fields, first training runs can take several minutes.
+- The app defaults to `data/projects_export_gdpr_safe.xlsx`.
+- The raw export (`projects_export.csv`) is intentionally not kept in the codebase.
+- The GDPR-safe workbook keeps scaffolder/team company names in `related_contacts` so training and selection remain identifiable.
+- Direct homeowner/contact PII, free-text notes, photo/image fields, exact project identifiers, and exact full postcodes are removed or reduced.
+- The active model is trained on `status_group`, a coarse non-PII status target derived from the raw status values.
+- To rebuild the workbook from a local raw export, run:
+
+```bash
+python scripts/create_gdpr_safe_dataset.py /path/to/projects_export.csv
+```
 
 ## Suggested PVF Next Steps
 

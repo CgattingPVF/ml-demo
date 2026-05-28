@@ -12,110 +12,105 @@
     />
     <link rel="stylesheet" href="/static/css/style.css" />
   </head>
-  <body class="layout-worker ux-v2" data-default-dataset="{{ default_dataset_path }}">
-    <main class="shell-v2">
-      <aside class="rail-v2">
-        <div class="rail-brand">
-          <span class="rail-logo">PVF</span>
-          <div>
-            <strong>Risk Desk</strong>
-            <span>Scaffolding Operations</span>
-          </div>
+  <body class="layout-worker ux-v2 pvf-calculator" data-default-dataset="{{ default_dataset_path }}">
+    <main class="pvf-shell">
+      <header class="pvf-header">
+        <a class="pvf-brand" href="/" aria-label="PVF Scaffolding">
+          <span class="pvf-brand-main">
+            <span class="pvf-brand-pvf">PVF</span>
+            <span class="pvf-brand-scaffolding">Scaffolding</span>
+          </span>
+          <span class="pvf-brand-tagline">your scaffold solutions</span>
+        </a>
+        <div class="pvf-page-title">
+          <p>Live Assessment</p>
+          <h1>Job Risk Assessment</h1>
+          <span>Risk Desk | Scaffolding Operations</span>
         </div>
-        <nav class="rail-nav">
-          <a class="active" href="/">Assessment Workspace</a>
-          <a href="/dev">Model Operations</a>
-        </nav>
-        <section class="rail-context" aria-label="Operational context">
-          <h2>Live Context</h2>
-          <div class="rail-context-grid">
-            <div>
-              <span>Scaffolders</span>
-              <strong id="context-scaffolders">-</strong>
-            </div>
-            <div>
-              <span>Businesses</span>
-              <strong id="context-businesses">-</strong>
-            </div>
-            <div>
-              <span>Job Types</span>
-              <strong id="context-job-types">-</strong>
-            </div>
-            <div>
-              <span>Postcodes</span>
-              <strong id="context-postcodes">-</strong>
-            </div>
-          </div>
-        </section>
-      </aside>
-
-      <section class="workspace-v2">
-        <header class="top-v2">
-          <div>
-            <p class="kicker-v2">Live Assessment</p>
-            <h1>Job Risk Assessment</h1>
-          </div>
-          <span class="model-v2">
+        <div class="pvf-header-actions">
+          <span class="pvf-target-chip">
             <span>Target</span>
             <strong id="active-model-label">Loading</strong>
           </span>
-        </header>
+          <a class="pvf-ops-link" href="/dev">Model Ops</a>
+          <button id="theme-toggle" class="pvf-dark-toggle" type="button">Dark Mode: Off</button>
+        </div>
+      </header>
 
-        <section class="grid-v2">
-          <form id="worker-job-form" class="panel-v2 form-v2">
-            <div class="panel-head-v2">
-              <h2>Job Information</h2>
-              <span id="form-progress-label">0 of 6 required</span>
-            </div>
-            <div class="form-progress-v2" aria-hidden="true">
-              <span id="form-progress-bar"></span>
-            </div>
+      <div class="pvf-rule" aria-hidden="true"></div>
+
+      <section class="pvf-command-strip" aria-label="Assessment overview">
+        <article class="pvf-command-card">
+          <span>Readiness</span>
+          <strong id="overview-readiness">0%</strong>
+        </article>
+        <article class="pvf-command-card">
+          <span>Active Target</span>
+          <strong id="overview-target">Loading</strong>
+        </article>
+        <article class="pvf-command-card">
+          <span>Data Coverage</span>
+          <strong id="overview-context">Loading</strong>
+        </article>
+        <article class="pvf-command-card">
+          <span>Best Match</span>
+          <strong id="overview-best-team">Awaiting run</strong>
+        </article>
+        <article class="pvf-command-card">
+          <span>Assessment Runs</span>
+          <strong id="overview-runs">0</strong>
+        </article>
+      </section>
+
+      <section class="pvf-calculator-grid">
+        <form id="worker-job-form" class="pvf-project-card">
+          <div class="pvf-card-title">
+            <h1>Project Details</h1>
+            <span id="form-status-chip">Input Required</span>
+          </div>
+
+          <div class="pvf-card-body">
+            <label>
+              Project Postcode
+              <input id="homeowner-postcode" type="text" list="postcode-list" placeholder="EX32 8HJ" required />
+              <datalist id="postcode-list"></datalist>
+            </label>
 
             <label>
-              Scaffolder
-              <select id="scaffold-partner" required>
-                <option value="">Loading scaffolders...</option>
+              Start Date
+              <input id="start-date" type="date" required />
+            </label>
+
+            <label>
+              End Date
+              <input id="due-date" type="date" required />
+            </label>
+
+            <label>
+              Job Type
+              <select id="scaffold-purpose" required>
+                <option value="">Select job type</option>
               </select>
             </label>
 
-            <div class="risk-row">
-              <label>
-                Postcode
-                <input id="homeowner-postcode" type="text" list="postcode-list" placeholder="e.g. M20 2XH" required />
-                <datalist id="postcode-list"></datalist>
-              </label>
-              <label>
-                Job Type
-                <select id="scaffold-purpose" required>
-                  <option value="">Select job type</option>
-                </select>
-              </label>
-            </div>
+            <label>
+              Job Price
+              <input id="budget-revenue" type="number" step="any" placeholder="0" required />
+            </label>
 
-            <div class="risk-row">
-              <label>
-                Erect Date
-                <input id="start-date" type="date" required />
-              </label>
-              <label>
-                Install / Due Date
-                <input id="due-date" type="date" required />
-              </label>
-            </div>
+            <label>
+              Scaffolder / Team
+              <select id="scaffold-partner" required>
+                <option value="">Loading teams...</option>
+              </select>
+            </label>
 
-            <div class="risk-row">
-              <label>
-                Job Price
-                <input id="budget-revenue" type="number" step="any" placeholder="0" required />
-              </label>
+            <details class="risk-optional pvf-optional">
+              <summary>Optional details</summary>
               <label>
                 Scaffold Cost
                 <input id="budget-cost" type="number" step="any" placeholder="Optional" />
               </label>
-            </div>
-
-            <details class="risk-optional">
-              <summary>Optional details</summary>
               <label>
                 Business
                 <select id="business-name">
@@ -134,32 +129,111 @@
               </label>
             </details>
 
-            <button id="predict-job-btn" class="btn primary" type="button">Calculate Risk</button>
+            <button id="predict-job-btn" class="btn primary pvf-submit" type="button">Find Best Teams</button>
+
+            <div class="form-progress-v2 pvf-progress" aria-hidden="true">
+              <span id="form-progress-bar"></span>
+            </div>
+            <div class="pvf-form-meta">
+              <span id="form-progress-label">0 of 6 required</span>
+              <span>Assessment Workspace</span>
+            </div>
             <div class="input-readiness" id="input-readiness">
               Complete the required fields to unlock an operational risk assessment.
             </div>
-          </form>
 
-          <section class="panel-v2 results-v2" aria-live="polite">
-            <div class="panel-head-v2">
-              <h2>Prediction</h2>
-              <span id="risk-state">Waiting for job details</span>
-            </div>
-            <div class="app-tools-v2">
-              <button id="clear-history-btn" class="btn">Clear History</button>
-              <button id="export-last-btn" class="btn">Export Last Result</button>
-            </div>
-            <div id="worker-output" class="risk-output">
-              <div class="risk-empty">
-                <strong>No prediction yet</strong>
-                <span>Waiting for job details</span>
+            <section class="pvf-project-preview" aria-label="Current project snapshot">
+              <div>
+                <span>Team</span>
+                <strong id="preview-team">Select team</strong>
               </div>
-            </div>
+              <div>
+                <span>Postcode</span>
+                <strong id="preview-postcode">Add postcode</strong>
+              </div>
+              <div>
+                <span>Window</span>
+                <strong id="preview-window">Set dates</strong>
+              </div>
+              <div>
+                <span>Lead Time</span>
+                <strong id="preview-lead-time">Set dates</strong>
+              </div>
+              <div>
+                <span>Job Type</span>
+                <strong id="preview-job-type">Select type</strong>
+              </div>
+              <div>
+                <span>Commercial</span>
+                <strong id="preview-commercial">Add price</strong>
+              </div>
+            </section>
+          </div>
+        </form>
+
+        <section class="pvf-results-card" aria-live="polite">
+          <div class="pvf-results-heading">
+            <h2>Team Matchboard</h2>
+            <span id="risk-state">Enter details to begin</span>
+          </div>
+          <section id="decision-strip" class="pvf-decision-strip" aria-label="Assessment decision">
+            <article>
+              <span>Decision</span>
+              <strong>Awaiting details</strong>
+            </article>
+            <article>
+              <span>Selected Rank</span>
+              <strong>Not calculated</strong>
+            </article>
+            <article>
+              <span>Best Team</span>
+              <strong>Ready after run</strong>
+            </article>
+            <article>
+              <span>Evidence</span>
+              <strong>Ready after run</strong>
+            </article>
           </section>
+          <div id="worker-output" class="risk-output pvf-results-output">
+            <div class="risk-empty">
+              <strong>Ready for calculation.</strong>
+              <span>Please enter project details.</span>
+            </div>
+          </div>
+          <div class="pvf-result-tools">
+            <button id="clear-history-btn" class="btn" type="button">Clear History</button>
+            <button id="export-last-btn" class="btn" type="button">Export Last Result</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="pvf-support-grid">
+        <section class="pvf-context-panel" aria-label="Operational context">
+          <div class="pvf-panel-heading">
+            <h2>Live Context</h2>
+          </div>
+          <div class="rail-context-grid">
+            <div>
+              <span>Teams</span>
+              <strong id="context-scaffolders">-</strong>
+            </div>
+            <div>
+              <span>Businesses</span>
+              <strong id="context-businesses">-</strong>
+            </div>
+            <div>
+              <span>Job Types</span>
+              <strong id="context-job-types">-</strong>
+            </div>
+            <div>
+              <span>Postcodes</span>
+              <strong id="context-postcodes">-</strong>
+            </div>
+          </div>
         </section>
 
-        <section class="panel-v2 intelligence-v2">
-          <div class="panel-head-v2">
+        <section class="pvf-intelligence-panel intelligence-v2">
+          <div class="pvf-panel-heading">
             <h2>Decision Intelligence</h2>
             <span id="history-count-label">0 runs</span>
           </div>

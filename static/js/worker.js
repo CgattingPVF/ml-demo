@@ -37,6 +37,13 @@ function formatPercent(value) {
   return `${number.toFixed(number % 1 === 0 ? 0 : 1)}%`;
 }
 
+function formatSignedPercent(value) {
+  if (value === null || value === undefined || value === "") return "N/A";
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "N/A";
+  return `${number > 0 ? "+" : ""}${formatPercent(number)}`;
+}
+
 function formatDate(value) {
   if (!value) return "N/A";
   const date = new Date(value);
@@ -74,6 +81,32 @@ function setText(id, value) {
   const text = String(value ?? "");
   element.textContent = text;
   element.title = text;
+}
+
+function selectedOptionText(id, fallback = "") {
+  const select = document.getElementById(id);
+  if (!select || select.selectedIndex < 0) return fallback;
+  const option = select.options[select.selectedIndex];
+  return option?.value ? option.textContent : fallback;
+}
+
+function setDecisionStrip(items, className = "") {
+  const strip = document.getElementById("decision-strip");
+  if (!strip) return;
+
+  strip.className = `pvf-decision-strip ${className}`.trim();
+  strip.innerHTML = "";
+
+  for (const [label, value] of items) {
+    const item = document.createElement("article");
+    const labelNode = document.createElement("span");
+    const valueNode = document.createElement("strong");
+    labelNode.textContent = label;
+    valueNode.textContent = value;
+    valueNode.title = value;
+    item.append(labelNode, valueNode);
+    strip.appendChild(item);
+  }
 }
 
 function populateSelect(id, values, placeholder) {
@@ -129,6 +162,57 @@ function collectJobRecord() {
   );
 }
 
+function projectDateWindow() {
+  const start = document.getElementById("start-date")?.value || "";
+  const due = document.getElementById("due-date")?.value || "";
+  if (start && due) {
+    return start === due ? formatDate(start) : `${formatDate(start)} to ${formatDate(due)}`;
+  }
+  if (start) return `From ${formatDate(start)}`;
+  if (due) return `Due ${formatDate(due)}`;
+  return "Set dates";
+}
+
+function projectLeadTimeSummary() {
+  const start = document.getElementById("start-date")?.value || "";
+  const due = document.getElementById("due-date")?.value || "";
+  if (!start || !due) return "Set dates";
+
+  const startDate = new Date(start);
+  const dueDate = new Date(due);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(dueDate.getTime())) return "Check dates";
+
+  const days = Math.round((dueDate - startDate) / 86400000);
+  if (days < 0) return "Date conflict";
+  if (days === 0) return "Same day";
+  return `${days} day${days === 1 ? "" : "s"}`;
+}
+
+function projectCommercialSummary() {
+  const price = Number(document.getElementById("budget-revenue")?.value);
+  const cost = Number(document.getElementById("budget-cost")?.value);
+  if (!Number.isFinite(price) || price <= 0) return "Add price";
+  if (Number.isFinite(cost) && cost > 0) {
+    const margin = price - cost;
+    const marginPct = price ? (margin / price) * 100 : null;
+    return `${formatCurrency(price)} | margin ${formatCurrency(margin)} (${formatPercent(marginPct)})`;
+  }
+  return formatCurrency(price);
+}
+
+function updateProjectPreview() {
+  const team = selectedOptionText("scaffold-partner", "Select team");
+  const postcode = document.getElementById("homeowner-postcode")?.value.trim().toUpperCase() || "Add postcode";
+  const jobType = selectedOptionText("scaffold-purpose", "Select type");
+
+  setText("preview-team", team);
+  setText("preview-postcode", postcode);
+  setText("preview-window", projectDateWindow());
+  setText("preview-lead-time", projectLeadTimeSummary());
+  setText("preview-job-type", jobType);
+  setText("preview-commercial", projectCommercialSummary());
+}
+
 function updateFormReadiness() {
   const completed = REQUIRED_INPUTS.filter(([id]) => {
     const element = document.getElementById(id);
@@ -141,6 +225,12 @@ function updateFormReadiness() {
   const percent = Math.round(ratio * 100);
 
   setText("form-progress-label", `${completed.length} of ${REQUIRED_INPUTS.length} required`);
+  setText("overview-readiness", `${percent}%`);
+  setText(
+    "form-status-chip",
+    missing.length ? `${missing.length} missing` : "Ready"
+  );
+  document.body.classList.toggle("is-ready", missing.length === 0);
   const bar = document.getElementById("form-progress-bar");
   if (bar) {
     bar.style.width = `${percent}%`;
@@ -153,6 +243,7 @@ function updateFormReadiness() {
       : "Ready to calculate risk with operational context.";
     readiness.classList.toggle("ready", missing.length === 0);
   }
+  updateProjectPreview();
 }
 
 function metricFor(predictions, name) {
@@ -267,6 +358,172 @@ function renderMetric(title, prediction, invert = false) {
 
   card.append(titleNode, scoreNode, levelNode, detailNode);
   return card;
+}
+
+function selectedTeamFromResult(result) {
+  const leaderboard = result.team_leaderboard || [];
+  const selected = leaderboard.find((team) => team.is_selected);
+  if (selected) return selected;
+  return leaderboard.find((team) => String(team.team || "").toLowerCase() === String(result.scaffolder || "").toLowerCase());
+}
+
+function teamFitClass(score) {
+  const value = Number(score);
+  if (value >= 78) return "team-fit-strong";
+  if (value >= 62) return "team-fit-watch";
+  return "team-fit-review";
+}
+
+function appendTeamStat(container, label, value) {
+  const stat = document.createElement("div");
+  stat.className = "team-stat";
+
+  const labelNode = document.createElement("span");
+  labelNode.textContent = label;
+
+  const valueNode = document.createElement("strong");
+  valueNode.textContent = String(value ?? "N/A");
+  valueNode.title = valueNode.textContent;
+
+  stat.append(labelNode, valueNode);
+  container.appendChild(stat);
+}
+
+function renderFitMeter(score) {
+  const meter = document.createElement("div");
+  meter.className = "team-fit-meter";
+  const fill = document.createElement("span");
+  fill.style.width = `${clamp(Number(score) || 0, 0, 100)}%`;
+  meter.appendChild(fill);
+  return meter;
+}
+
+function renderSelectedTeamAssessment(result, predictions) {
+  const panel = document.createElement("section");
+  panel.className = "team-assessment";
+
+  const decision = summarizeDecision(predictions);
+  panel.classList.add(decision.className);
+
+  const selectedTeam = selectedTeamFromResult(result);
+  const summary = result.team_match_summary || {};
+  const topTeam = (result.team_leaderboard || [])[0];
+  const fitScore = selectedTeam?.fit_score ?? summary.selected_fit_score;
+
+  const main = document.createElement("div");
+  main.className = "team-assessment-main";
+
+  const copy = document.createElement("div");
+  const kicker = document.createElement("span");
+  kicker.className = "team-kicker";
+  kicker.textContent = "Selected Team Assessment";
+
+  const heading = document.createElement("h3");
+  heading.textContent = result.scaffolder || "Selected team";
+  heading.title = heading.textContent;
+
+  const reason = document.createElement("p");
+  reason.textContent = selectedTeam?.reason || decision.rationale;
+
+  copy.append(kicker, heading, reason);
+
+  const scoreBox = document.createElement("div");
+  scoreBox.className = `team-score-box ${teamFitClass(fitScore)}`;
+  const scoreLabel = document.createElement("span");
+  scoreLabel.textContent = "Fit Score";
+  const scoreValue = document.createElement("strong");
+  scoreValue.textContent = fitScore === undefined || fitScore === null ? "N/A" : formatPercent(fitScore);
+  const scoreRank = document.createElement("em");
+  scoreRank.textContent = selectedTeam?.rank ? `Rank #${selectedTeam.rank}` : "Unranked";
+  scoreBox.append(scoreLabel, scoreValue, scoreRank, renderFitMeter(fitScore));
+
+  main.append(copy, scoreBox);
+
+  const grid = document.createElement("div");
+  grid.className = "team-assessment-grid";
+  appendInfoItem(grid, "Decision", decision.label, "team-assessment-item");
+  appendInfoItem(grid, "Priority Signal", decision.priority, "team-assessment-item");
+  appendInfoItem(grid, "Best Match", topTeam?.team || summary.best_team || "N/A", "team-assessment-item");
+  appendInfoItem(grid, "Compared Teams", formatNumber(summary.teams_compared), "team-assessment-item");
+  appendInfoItem(grid, "Completion", formatPercent(selectedTeam?.completion_rate_pct), "team-assessment-item");
+  appendInfoItem(grid, "Cancellation", formatPercent(selectedTeam?.cancellation_rate_pct), "team-assessment-item");
+
+  panel.append(main, grid);
+  return panel;
+}
+
+function renderTeamLeaderboard(result) {
+  const leaderboard = result.team_leaderboard || [];
+  const panel = document.createElement("section");
+  panel.className = "team-leaderboard-panel";
+
+  const header = document.createElement("header");
+  const heading = document.createElement("h3");
+  heading.textContent = "Ranked Team Shortlist";
+  const meta = document.createElement("span");
+  const summary = result.team_match_summary || {};
+  meta.textContent = `${formatNumber(summary.teams_compared)} compared`;
+  header.append(heading, meta);
+
+  const list = document.createElement("div");
+  list.className = "team-rank-list";
+
+  if (!leaderboard.length) {
+    const empty = document.createElement("div");
+    empty.className = "team-rank-empty";
+    empty.textContent = "No ranked teams returned for this job.";
+    list.appendChild(empty);
+    panel.append(header, list);
+    return panel;
+  }
+
+  for (const team of leaderboard) {
+    const card = document.createElement("article");
+    card.className = `team-rank-card ${teamFitClass(team.fit_score)}`;
+    if (team.is_selected) card.classList.add("is-selected");
+
+    const rank = document.createElement("div");
+    rank.className = "team-rank-badge";
+    const rankLabel = document.createElement("span");
+    rankLabel.textContent = "Rank";
+    const rankValue = document.createElement("strong");
+    rankValue.textContent = `#${team.rank || "-"}`;
+    rank.append(rankLabel, rankValue);
+
+    const identity = document.createElement("div");
+    identity.className = "team-rank-identity";
+    const nameRow = document.createElement("div");
+    nameRow.className = "team-rank-name-row";
+    const name = document.createElement("strong");
+    name.textContent = team.team || "Unknown team";
+    name.title = name.textContent;
+    nameRow.appendChild(name);
+    if (team.is_selected) {
+      const selected = document.createElement("span");
+      selected.textContent = "Selected";
+      nameRow.appendChild(selected);
+    }
+    const reason = document.createElement("p");
+    reason.textContent = team.reason || "Ranked from historical delivery, safety and commercial signals.";
+    identity.append(nameRow, renderFitMeter(team.fit_score), reason);
+
+    const stats = document.createElement("div");
+    stats.className = "team-rank-stats";
+    appendTeamStat(stats, "Fit", formatPercent(team.fit_score));
+    appendTeamStat(stats, "Comp", formatPercent(team.completion_rate_pct));
+    appendTeamStat(stats, "Cancel", formatPercent(team.cancellation_rate_pct));
+    appendTeamStat(stats, "Similar", formatNumber(team.similar_jobs));
+    appendTeamStat(stats, "Median", formatCurrency(team.median_price));
+    appendTeamStat(stats, "Delta", formatSignedPercent(team.price_delta_pct));
+    appendTeamStat(stats, "HSE", formatPercent(team.hse_rate_pct));
+    appendTeamStat(stats, "Jobs", formatNumber(team.total_jobs));
+
+    card.append(rank, identity, stats);
+    list.appendChild(card);
+  }
+
+  panel.append(header, list);
+  return panel;
 }
 
 function renderExecutiveBrief(result, predictions) {
@@ -460,6 +717,7 @@ function renderResults(result) {
   output.innerHTML = "";
 
   const predictions = result.predictions || [];
+  const decision = summarizeDecision(predictions);
   const failure = metricFor(predictions, "Failure / non-completion risk");
   const completion = metricFor(predictions, "Completion likelihood");
   const hse = metricFor(predictions, "HSE / incident risk");
@@ -467,6 +725,26 @@ function renderResults(result) {
   const damage = metricFor(predictions, "Damage / claim risk");
   const margin = metricFor(predictions, "Price / margin pressure");
   const cancellation = metricFor(predictions, "Cancellation / postponement risk");
+  const evidence = result.evidence || {};
+  const matchSummary = result.team_match_summary || {};
+  const selectedTeam = selectedTeamFromResult(result);
+  const bestTeam = (result.team_leaderboard || [])[0];
+  const selectedRank = selectedTeam?.rank ? `#${selectedTeam.rank}` : "Unranked";
+
+  setText("overview-best-team", bestTeam?.team || matchSummary.best_team || "N/A");
+
+  setDecisionStrip(
+    [
+      ["Decision", decision.label],
+      ["Selected Rank", selectedRank],
+      ["Best Team", bestTeam?.team || matchSummary.best_team || "N/A"],
+      [
+        "Evidence",
+        `${formatNumber(evidence.similar_jobs_used)} similar / ${formatNumber(evidence.scaffolder_jobs)} team jobs`,
+      ],
+    ],
+    decision.className
+  );
 
   const grid = document.createElement("div");
   grid.className = "risk-metric-grid";
@@ -508,6 +786,8 @@ function renderResults(result) {
   detailPanel.append(detailHeading, detailGrid);
 
   output.append(
+    renderSelectedTeamAssessment(result, predictions),
+    renderTeamLeaderboard(result),
     renderExecutiveBrief(result, predictions),
     renderSummary(result),
     grid,
@@ -529,10 +809,15 @@ function summarizeResult(result) {
   const programme = metricFor(predictions, "Programme risk");
   const margin = metricFor(predictions, "Price / margin pressure");
   const decision = summarizeDecision(predictions);
+  const matchSummary = result.team_match_summary || {};
+  const selectedTeam = selectedTeamFromResult(result);
   return {
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     at: new Date().toISOString(),
     scaffolder: result.scaffolder || "Unknown",
+    bestTeam: matchSummary.best_team || result.team_leaderboard?.[0]?.team || "N/A",
+    selectedRank: selectedTeam?.rank ?? matchSummary.selected_rank ?? null,
+    fitScore: selectedTeam?.fit_score ?? matchSummary.selected_fit_score ?? null,
     postcode: result.job_inputs?.postcode || "N/A",
     jobType: result.job_inputs?.job_type || "N/A",
     price: result.job_inputs?.job_price ?? null,
@@ -559,6 +844,7 @@ function renderIntelligence() {
   if (!historyList || !pinned || !count) return;
 
   count.textContent = `${workerState.history.length} runs`;
+  setText("overview-runs", workerState.history.length);
   historyList.innerHTML = "";
   pinned.innerHTML = "";
 
@@ -586,10 +872,11 @@ function renderIntelligence() {
     metrics.className = "history-metrics";
     for (const label of [
       ["Decision", run.decision],
+      ["Rank", run.selectedRank ? `#${run.selectedRank}` : "N/A"],
+      ["Fit", formatPercent(run.fitScore)],
       ["Failure", formatPercent(run.failure)],
       ["Completion", formatPercent(run.completion)],
       ["Programme", formatPercent(run.programme)],
-      ["HSE", formatPercent(run.hse)],
     ]) {
       const metric = document.createElement("span");
       metric.textContent = `${label[0]} ${label[1]}`;
@@ -611,14 +898,19 @@ function renderIntelligence() {
     .sort((a, b) => b.hse - a.hse)[0];
   const avgFailure = averageOf(workerState.history, "failure");
   const avgCompletion = averageOf(workerState.history, "completion");
+  const avgFit = averageOf(workerState.history, "fitScore");
+  const latestRun = workerState.history[workerState.history.length - 1];
 
   const highlights = [
+    ["Latest Best Match", latestRun?.bestTeam || "N/A"],
+    ["Latest Selected Rank", latestRun?.selectedRank ? `#${latestRun.selectedRank}` : "N/A"],
     ["Highest Failure Risk", topFailure ? `${topFailure.scaffolder} (${topFailure.failure}%)` : "N/A"],
     ["Lowest Completion", lowCompletion ? `${lowCompletion.scaffolder} (${lowCompletion.completion}%)` : "N/A"],
     ["Highest HSE Risk", highHse ? `${highHse.scaffolder} (${highHse.hse}%)` : "N/A"],
+    ["Average Fit", avgFit === null ? "N/A" : formatPercent(avgFit)],
     ["Average Failure", avgFailure === null ? "N/A" : formatPercent(avgFailure)],
     ["Average Completion", avgCompletion === null ? "N/A" : formatPercent(avgCompletion)],
-    ["Latest Recommendation", workerState.history[workerState.history.length - 1]?.recommendation || "N/A"],
+    ["Latest Recommendation", latestRun?.recommendation || "N/A"],
   ];
 
   for (const [label, value] of highlights) {
@@ -651,6 +943,49 @@ function showError(message) {
   error.textContent = message;
   output.replaceChildren(error);
   setText("risk-state", "Check required fields");
+  setText("overview-best-team", "N/A");
+  setDecisionStrip(
+    [
+      ["Decision", "Input check required"],
+      ["Selected Rank", "Not calculated"],
+      ["Best Team", "Not calculated"],
+      ["Evidence", "Run paused"],
+    ],
+    "decision-high"
+  );
+}
+
+function setDefaultProjectDates() {
+  const start = document.getElementById("start-date");
+  const due = document.getElementById("due-date");
+  const today = new Date().toISOString().slice(0, 10);
+  if (start && !start.value) start.value = today;
+  if (due && !due.value) due.value = today;
+}
+
+function initThemeToggle() {
+  const toggle = document.getElementById("theme-toggle");
+  if (!toggle) return;
+
+  const setTheme = (isDark) => {
+    document.body.classList.toggle("is-dark", isDark);
+    toggle.textContent = `Dark Mode: ${isDark ? "On" : "Off"}`;
+    try {
+      localStorage.setItem("pvf-theme", isDark ? "dark" : "light");
+    } catch {
+      // Theme persistence is a convenience; the toggle still works without storage.
+    }
+  };
+
+  let savedTheme = "light";
+  try {
+    savedTheme = localStorage.getItem("pvf-theme") || "light";
+  } catch {
+    savedTheme = "light";
+  }
+
+  setTheme(savedTheme === "dark");
+  toggle.addEventListener("click", () => setTheme(!document.body.classList.contains("is-dark")));
 }
 
 async function calculateRisk() {
@@ -669,6 +1004,15 @@ async function calculateRisk() {
     }
 
     setText("risk-state", "Calculating...");
+    setDecisionStrip(
+      [
+        ["Decision", "Calculating"],
+        ["Selected Rank", "Ranking teams"],
+        ["Best Team", "Matching shortlist"],
+        ["Evidence", "Matching historical jobs"],
+      ],
+      "is-calculating"
+    );
     const result = await api("/api/scaffolder/predict", {
       method: "POST",
       body: {
@@ -693,6 +1037,7 @@ async function loadContext() {
   const active = await api("/api/active-model");
   const model = active.experiment || {};
   setText("active-model-label", model.target_column || "Unavailable");
+  setText("overview-target", model.target_column || "Unavailable");
 
   workerState.referenceData = await api("/api/portal/reference-data", {
     method: "POST",
@@ -709,9 +1054,15 @@ async function loadContext() {
   setText("context-businesses", compactCount(workerState.referenceData.businesses));
   setText("context-job-types", compactCount(workerState.referenceData.scaffold_purposes));
   setText("context-postcodes", compactCount(workerState.referenceData.postcodes));
+  setText(
+    "overview-context",
+    `${compactCount(workerState.referenceData.scaffolders)} teams / ${compactCount(workerState.referenceData.postcodes)} postcodes`
+  );
 }
 
 async function init() {
+  initThemeToggle();
+  setDefaultProjectDates();
   document.getElementById("predict-job-btn").addEventListener("click", calculateRisk);
   document.getElementById("worker-job-form").addEventListener("input", updateFormReadiness);
   document.getElementById("worker-job-form").addEventListener("change", updateFormReadiness);

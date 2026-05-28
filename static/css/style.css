@@ -58,17 +58,17 @@ body {
 .page {
   position: relative;
   z-index: 1;
-  width: min(1200px, 94vw);
-  margin: 2.2rem auto 4rem;
+  width: min(1280px, 95vw);
+  margin: 1.2rem auto 2.2rem;
   display: grid;
-  gap: 1.25rem;
+  gap: 0.8rem;
 }
 
 .hero {
   background: linear-gradient(135deg, #0f766e 0%, #2c7a7b 58%, #f4a261 100%);
   color: #fff;
-  border-radius: 1.1rem;
-  padding: 2rem;
+  border-radius: 0.9rem;
+  padding: 1.25rem 1.35rem;
   box-shadow: var(--shadow);
   animation: reveal 0.6s ease;
 }
@@ -107,15 +107,15 @@ h2 {
 .card {
   background: var(--card);
   border: 1px solid rgba(15, 118, 110, 0.14);
-  border-radius: 1rem;
-  padding: 1.35rem;
+  border-radius: 0.85rem;
+  padding: 1rem;
   box-shadow: var(--shadow);
   animation: reveal 0.5s ease;
 }
 
 .grid {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.65rem;
 }
 
 .grid.two {
@@ -125,8 +125,8 @@ h2 {
 label {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.9rem;
+  gap: 0.28rem;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
@@ -145,9 +145,10 @@ input,
 select,
 textarea {
   width: 100%;
-  padding: 0.62rem 0.72rem;
+  min-height: 2.2rem;
+  padding: 0.5rem 0.62rem;
   border: 1px solid var(--line);
-  border-radius: 0.65rem;
+  border-radius: 0.52rem;
   background: #fff;
   color: var(--ink);
 }
@@ -166,14 +167,16 @@ textarea:focus {
 .actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 1rem 0 0.45rem;
+  gap: 0.45rem;
+  margin: 0.72rem 0 0.3rem;
 }
 
 .btn {
   border: none;
-  border-radius: 0.68rem;
-  padding: 0.62rem 0.92rem;
+  border-radius: 0.56rem;
+  min-height: 2.1rem;
+  padding: 0.46rem 0.74rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink);
   background: #edf1f6;
@@ -197,16 +200,16 @@ textarea:focus {
 }
 
 .output {
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
   border-top: 1px dashed var(--line);
-  padding-top: 0.85rem;
+  padding-top: 0.62rem;
 }
 
 .output-box {
   background: #f7fafc;
   border: 1px solid #e4ebf4;
-  border-radius: 0.75rem;
-  padding: 0.8rem;
+  border-radius: 0.62rem;
+  padding: 0.62rem;
   overflow: auto;
 }
 
@@ -218,16 +221,16 @@ textarea:focus {
 .pill-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.55rem;
-  margin-bottom: 0.85rem;
+  gap: 0.4rem;
+  margin-bottom: 0.62rem;
 }
 
 .pill {
   background: var(--primary-soft);
   border: 1px solid #cdebed;
   border-radius: 999px;
-  padding: 0.34rem 0.7rem;
-  font-size: 0.84rem;
+  padding: 0.26rem 0.56rem;
+  font-size: 0.78rem;
 }
 
 .pill.accent {
@@ -236,18 +239,18 @@ textarea:focus {
 }
 
 .intake-form {
-  margin-top: 0.4rem;
+  margin-top: 0.28rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.55rem;
 }
 
 .profile-card {
   background: #f9fbff;
   border: 1px solid #dce5f5;
-  border-radius: 0.9rem;
-  padding: 0.95rem;
-  margin-top: 0.8rem;
+  border-radius: 0.72rem;
+  padding: 0.72rem;
+  margin-top: 0.55rem;
 }
 
 .profile-title {
@@ -263,15 +266,15 @@ textarea:focus {
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.55rem;
-  margin-bottom: 0.8rem;
+  gap: 0.45rem;
+  margin-bottom: 0.58rem;
 }
 
 .metric {
   background: #fff;
   border: 1px solid #e4e9f2;
-  border-radius: 0.7rem;
-  padding: 0.55rem;
+  border-radius: 0.58rem;
+  padding: 0.42rem;
 }
 
 .metric .label {
@@ -324,18 +327,18 @@ textarea:focus {
   overflow-x: auto;
   background: #fff;
   border: 1px solid #e5e9f2;
-  border-radius: 0.7rem;
+  border-radius: 0.58rem;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.83rem;
+  font-size: 0.8rem;
 }
 
 th,
 td {
-  padding: 0.46rem 0.55rem;
+  padding: 0.38rem 0.48rem;
   border-bottom: 1px solid #edf1f7;
   text-align: left;
 }
@@ -1467,11 +1470,11 @@ thead th {
 }
 
 .ux-v2 .shell-v2 {
-  width: min(1360px, calc(100vw - 32px));
-  margin: 16px auto 30px;
+  width: min(1450px, calc(100vw - 22px));
+  margin: 10px auto 20px;
   display: grid;
-  grid-template-columns: 230px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 210px minmax(0, 1fr);
+  gap: 10px;
 }
 
 .ux-v2 .rail-v2,
@@ -1483,42 +1486,43 @@ thead th {
 }
 
 .ux-v2 .rail-v2 {
-  padding: 14px;
+  padding: 10px;
   display: grid;
   align-content: start;
-  gap: 16px;
+  gap: 10px;
   position: sticky;
-  top: 12px;
-  min-height: calc(100vh - 48px);
+  top: 8px;
+  min-height: calc(100vh - 28px);
 }
 
 .ux-v2 .rail-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .ux-v2 .rail-logo {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 6px;
   background: linear-gradient(145deg, var(--ux-brand) 0%, #0f6672 100%);
   color: #fff;
   font-family: "Space Grotesk", sans-serif;
+  font-size: 0.78rem;
   font-weight: 700;
 }
 
 .ux-v2 .rail-brand strong {
   display: block;
-  font-size: 0.95rem;
+  font-size: 0.86rem;
 }
 
 .ux-v2 .rail-brand span {
   display: block;
   color: var(--ux-muted);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
 }
 
 .ux-v2 .rail-nav {
@@ -1530,10 +1534,10 @@ thead th {
   text-decoration: none;
   color: #304258;
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
   border: 1px solid transparent;
-  border-radius: 7px;
-  padding: 10px 11px;
+  border-radius: 6px;
+  padding: 8px 9px;
 }
 
 .ux-v2 .rail-nav a:hover,
@@ -1597,9 +1601,9 @@ thead th {
 }
 
 .ux-v2 .workspace-v2 {
-  padding: 14px;
+  padding: 10px;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .ux-v2 .top-v2 {
@@ -1608,8 +1612,8 @@ thead th {
   align-items: center;
   gap: 12px;
   border: 1px solid var(--ux-line);
-  border-radius: 9px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 11px 12px;
   background: linear-gradient(125deg, #0a6f78 0%, #145d6a 58%, #23344b 100%);
   color: #fff;
 }
@@ -1624,7 +1628,7 @@ thead th {
 
 .ux-v2 .top-v2 h1 {
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.32rem;
   line-height: 1.14;
 }
 
@@ -1659,15 +1663,15 @@ thead th {
 .ux-v2 .ops-kpi-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .ux-v2 .ops-kpi,
 .ux-v2 .ops-stat {
   min-width: 0;
   border: 1px solid #d7e1eb;
-  border-radius: 8px;
-  padding: 12px;
+  border-radius: 7px;
+  padding: 9px;
   background: #ffffff;
 }
 
@@ -1803,14 +1807,14 @@ thead th {
 .ux-v2 .grid-v2 {
   display: grid;
   grid-template-columns: minmax(360px, 0.86fr) minmax(0, 1.14fr);
-  gap: 14px;
+  gap: 10px;
 }
 
 .ux-v2 .panel-v2 {
   border: 1px solid var(--ux-line);
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--ux-surface);
-  padding: 14px;
+  padding: 10px;
   animation: panel-rise 320ms ease;
 }
 
@@ -1820,23 +1824,23 @@ thead th {
   align-items: baseline;
   gap: 10px;
   border-bottom: 1px solid #e7edf3;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 
 .ux-v2 .panel-head-v2 h2 {
   margin: 0;
-  font-size: 1.02rem;
+  font-size: 0.94rem;
 }
 
 .ux-v2 .panel-head-v2 span {
   color: var(--ux-muted);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 700;
 }
 
 .ux-v2 .form-v2 {
   display: grid;
-  gap: 12px;
+  gap: 9px;
 }
 
 .ux-v2 .form-progress-v2 {
@@ -1876,20 +1880,20 @@ thead th {
 }
 
 .ux-v2 .app-tools-v2 {
-  margin-top: 10px;
+  margin-top: 7px;
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .ux-v2 .app-tools-v2 .btn {
-  min-height: 34px;
-  font-size: 0.82rem;
-  padding: 0 11px;
+  min-height: 31px;
+  font-size: 0.78rem;
+  padding: 0 9px;
 }
 
 .ux-v2 .risk-output {
-  gap: 12px;
+  gap: 8px;
 }
 
 .ux-v2 .risk-summary,
@@ -2112,10 +2116,10 @@ thead th {
 }
 
 .ux-v2 .intelligence-grid-v2 {
-  margin-top: 10px;
+  margin-top: 8px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
 .ux-v2 .history-list,
@@ -2212,8 +2216,13 @@ thead th {
 .ux-v2 select,
 .ux-v2 textarea {
   border: 1px solid #c8d4df;
-  border-radius: 7px;
-  min-height: 42px;
+  border-radius: 6px;
+  min-height: 36px;
+  padding: 0.42rem 0.55rem;
+}
+
+.ux-v2 textarea {
+  min-height: 82px;
 }
 
 .ux-v2 .table-wrap {
@@ -2302,5 +2311,1122 @@ thead th {
   .ux-v2 .risk-bar-head span,
   .ux-v2 .feature-row strong {
     white-space: normal;
+  }
+}
+
+/* PVF calculator redesign */
+.pvf-calculator {
+  --pvf-bg: #f4f4f4;
+  --pvf-surface: #ffffff;
+  --pvf-ink: #111827;
+  --pvf-muted: #9aa0a6;
+  --pvf-line: #dedede;
+  --pvf-soft-line: #ececec;
+  --pvf-green: #92c232;
+  --pvf-green-dark: #71971f;
+  --pvf-blue: #2563eb;
+  --pvf-amber: #b7791f;
+  --pvf-red: #dc2626;
+  --pvf-charcoal: #17191c;
+  --pvf-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  background: var(--pvf-bg);
+  color: var(--pvf-ink);
+}
+
+.pvf-calculator.is-dark {
+  --pvf-bg: #17191c;
+  --pvf-surface: #22252a;
+  --pvf-ink: #f3f5f7;
+  --pvf-muted: #a9b0b9;
+  --pvf-line: #3a3f47;
+  --pvf-soft-line: #30353c;
+  --pvf-charcoal: #08090b;
+  --pvf-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+}
+
+.pvf-calculator .pvf-shell {
+  width: min(1152px, calc(100vw - 32px));
+  margin: 38px auto 48px;
+}
+
+.pvf-calculator .pvf-header {
+  min-height: 72px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, auto) minmax(260px, 1fr);
+  align-items: center;
+  gap: 22px;
+}
+
+.pvf-calculator .pvf-brand {
+  display: inline-flex;
+  flex-direction: column;
+  justify-self: start;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.pvf-calculator .pvf-brand-main {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.pvf-calculator .pvf-brand-pvf {
+  color: #d0d2d4;
+  font-size: clamp(2.1rem, 4.3vw, 3.1rem);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.pvf-calculator .pvf-brand-scaffolding {
+  color: var(--pvf-green);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.pvf-calculator .pvf-brand-tagline {
+  margin-top: -3px;
+  padding-left: clamp(106px, 12vw, 128px);
+  color: #c9cbcf;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.pvf-calculator .pvf-page-title {
+  justify-self: center;
+  text-align: center;
+}
+
+.pvf-calculator .pvf-page-title p,
+.pvf-calculator .pvf-page-title span {
+  margin: 0;
+  color: var(--pvf-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-page-title h1 {
+  margin: 1px 0;
+  font-size: 1.08rem;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-header-actions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pvf-calculator .pvf-target-chip,
+.pvf-calculator .pvf-ops-link,
+.pvf-calculator .pvf-dark-toggle {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pvf-calculator .pvf-target-chip {
+  gap: 7px;
+  max-width: 230px;
+  padding: 0 12px;
+  color: var(--pvf-ink);
+  background: var(--pvf-surface);
+  border: 1px solid var(--pvf-line);
+}
+
+.pvf-calculator .pvf-target-chip span {
+  color: var(--pvf-muted);
+}
+
+.pvf-calculator .pvf-target-chip strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pvf-calculator .pvf-ops-link,
+.pvf-calculator .pvf-dark-toggle {
+  border: 0;
+  padding: 0 18px;
+  color: #ffffff;
+  background: var(--pvf-charcoal);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pvf-calculator .pvf-ops-link:hover,
+.pvf-calculator .pvf-dark-toggle:hover {
+  background: #2b2f35;
+}
+
+.pvf-calculator .pvf-rule {
+  height: 2px;
+  margin: 30px 0 18px;
+  background: var(--pvf-green);
+}
+
+.pvf-calculator .pvf-command-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 34px;
+}
+
+.pvf-calculator .pvf-command-card {
+  min-width: 0;
+  min-height: 74px;
+  display: grid;
+  align-content: center;
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--pvf-surface);
+  box-shadow: var(--pvf-shadow);
+}
+
+.pvf-calculator .pvf-command-card span,
+.pvf-calculator .pvf-project-preview span,
+.pvf-calculator .pvf-decision-strip span {
+  display: block;
+  overflow: hidden;
+  color: var(--pvf-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pvf-calculator .pvf-command-card strong,
+.pvf-calculator .pvf-project-preview strong,
+.pvf-calculator .pvf-decision-strip strong {
+  display: block;
+  min-width: 0;
+  margin-top: 5px;
+  overflow: hidden;
+  color: var(--pvf-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+}
+
+.pvf-calculator .pvf-calculator-grid {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.pvf-calculator .pvf-project-card {
+  position: sticky;
+  top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  background: var(--pvf-surface);
+  box-shadow: var(--pvf-shadow);
+}
+
+.pvf-calculator .pvf-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 25px 24px;
+  border-bottom: 1px solid var(--pvf-line);
+}
+
+.pvf-calculator .pvf-card-title h1 {
+  margin: 0;
+  color: #293241;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-card-title span {
+  flex: 0 0 auto;
+  border: 1px solid var(--pvf-line);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: var(--pvf-muted);
+  background: color-mix(in srgb, var(--pvf-surface) 82%, var(--pvf-bg));
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator.is-ready .pvf-card-title span {
+  color: #416409;
+  border-color: color-mix(in srgb, var(--pvf-green) 72%, var(--pvf-line));
+  background: rgba(146, 194, 50, 0.12);
+}
+
+.pvf-calculator.is-dark.is-ready .pvf-card-title span {
+  color: #d8f59a;
+}
+
+.pvf-calculator.is-dark .pvf-card-title h1 {
+  color: var(--pvf-ink);
+}
+
+.pvf-calculator .pvf-card-body {
+  display: grid;
+  gap: 20px;
+  padding: 26px 24px 28px;
+}
+
+.pvf-calculator label {
+  gap: 10px;
+  color: var(--pvf-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator input,
+.pvf-calculator select,
+.pvf-calculator textarea {
+  min-height: 50px;
+  border: 2px solid var(--pvf-line);
+  border-radius: 8px;
+  padding: 0 17px;
+  color: var(--pvf-ink);
+  background: var(--pvf-surface);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.pvf-calculator textarea {
+  min-height: 92px;
+  padding-top: 13px;
+}
+
+.pvf-calculator input::placeholder,
+.pvf-calculator textarea::placeholder {
+  color: #69717d;
+}
+
+.pvf-calculator input:focus,
+.pvf-calculator select:focus,
+.pvf-calculator textarea:focus {
+  border-color: var(--pvf-green);
+  outline: 3px solid rgba(146, 194, 50, 0.22);
+}
+
+.pvf-calculator .pvf-optional {
+  display: block;
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  padding: 14px;
+  background: color-mix(in srgb, var(--pvf-surface) 86%, var(--pvf-bg));
+}
+
+.pvf-calculator .pvf-optional summary {
+  color: var(--pvf-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-optional[open] {
+  display: grid;
+  gap: 16px;
+}
+
+.pvf-calculator .pvf-submit {
+  min-height: 54px;
+  border-radius: 8px;
+  color: #ffffff;
+  background: var(--pvf-green);
+  border-bottom: 5px solid var(--pvf-green-dark);
+  box-shadow: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-submit:hover {
+  background: #9ccb34;
+  transform: translateY(-1px);
+}
+
+.pvf-calculator .pvf-progress {
+  height: 8px;
+  margin-top: -2px;
+  background: color-mix(in srgb, var(--pvf-line) 70%, transparent);
+}
+
+.pvf-calculator .pvf-progress span {
+  background: var(--pvf-green);
+}
+
+.pvf-calculator .pvf-form-meta,
+.pvf-calculator .pvf-panel-heading,
+.pvf-calculator .pvf-results-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pvf-calculator .pvf-form-meta {
+  color: var(--pvf-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .input-readiness {
+  border: 1px dashed var(--pvf-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--pvf-muted);
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.pvf-calculator .input-readiness.ready {
+  color: #416409;
+  border-color: color-mix(in srgb, var(--pvf-green) 70%, var(--pvf-line));
+  background: rgba(146, 194, 50, 0.1);
+}
+
+.pvf-calculator.is-dark .input-readiness.ready {
+  color: #d8f59a;
+  background: rgba(146, 194, 50, 0.16);
+}
+
+.pvf-calculator .pvf-project-preview {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 1px solid var(--pvf-line);
+  padding-top: 16px;
+}
+
+.pvf-calculator .pvf-project-preview div {
+  min-width: 0;
+  border: 1px solid var(--pvf-soft-line);
+  border-radius: 8px;
+  padding: 10px 11px;
+  background: color-mix(in srgb, var(--pvf-surface) 90%, var(--pvf-bg));
+}
+
+.pvf-calculator .pvf-project-preview strong {
+  font-size: 0.88rem;
+}
+
+.pvf-calculator .pvf-results-card {
+  min-width: 0;
+}
+
+.pvf-calculator .pvf-results-heading {
+  min-height: 49px;
+  padding: 0 0 15px;
+  border-bottom: 1px solid var(--pvf-line);
+}
+
+.pvf-calculator .pvf-results-heading h2,
+.pvf-calculator .pvf-panel-heading h2 {
+  margin: 0;
+  color: var(--pvf-ink);
+  font-size: 1.15rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-results-heading span,
+.pvf-calculator .pvf-panel-heading span {
+  color: var(--pvf-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.pvf-calculator .pvf-results-output {
+  margin-top: 24px;
+  display: grid;
+  gap: 13px;
+}
+
+.pvf-calculator .pvf-decision-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding: 10px;
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--pvf-surface) 78%, var(--pvf-bg));
+}
+
+.pvf-calculator .pvf-decision-strip article {
+  min-width: 0;
+  border-left: 4px solid var(--pvf-blue);
+  border-radius: 7px;
+  padding: 10px 11px;
+  background: var(--pvf-surface);
+}
+
+.pvf-calculator .pvf-decision-strip.decision-low article:first-child {
+  border-left-color: #15803d;
+}
+
+.pvf-calculator .pvf-decision-strip.decision-medium article:first-child,
+.pvf-calculator .pvf-decision-strip.is-calculating article:first-child {
+  border-left-color: var(--pvf-amber);
+}
+
+.pvf-calculator .pvf-decision-strip.decision-high article:first-child {
+  border-left-color: var(--pvf-red);
+}
+
+.pvf-calculator .pvf-decision-strip strong {
+  white-space: normal;
+}
+
+.pvf-calculator .risk-empty {
+  min-height: 184px;
+  border: 3px dashed var(--pvf-line);
+  border-radius: 8px;
+  background: var(--pvf-surface);
+  color: var(--pvf-muted);
+  text-transform: uppercase;
+}
+
+.pvf-calculator .risk-empty strong,
+.pvf-calculator .risk-empty span {
+  display: inline;
+  color: var(--pvf-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.pvf-calculator .risk-empty strong::after {
+  content: " ";
+}
+
+.pvf-calculator .pvf-result-tools {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.pvf-calculator .pvf-result-tools .btn {
+  min-height: 34px;
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  color: var(--pvf-ink);
+  background: var(--pvf-surface);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .pvf-support-grid {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  margin-top: 30px;
+}
+
+.pvf-calculator .pvf-context-panel,
+.pvf-calculator .pvf-intelligence-panel {
+  border-top: 1px solid var(--pvf-line);
+  padding-top: 18px;
+}
+
+.pvf-calculator .rail-context-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pvf-calculator .rail-context-grid div,
+.pvf-calculator .history-row,
+.pvf-calculator .highlight-row,
+.pvf-calculator .history-empty {
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  background: var(--pvf-surface);
+}
+
+.pvf-calculator .rail-context-grid div {
+  min-width: 0;
+  padding: 12px;
+}
+
+.pvf-calculator .rail-context-grid span,
+.pvf-calculator .history-row header span,
+.pvf-calculator .history-row p,
+.pvf-calculator .highlight-row span {
+  color: var(--pvf-muted);
+}
+
+.pvf-calculator .rail-context-grid span {
+  display: block;
+  overflow: hidden;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.pvf-calculator .rail-context-grid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--pvf-ink);
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.pvf-calculator .intelligence-grid-v2 {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pvf-calculator .intelligence-v2 h3 {
+  margin: 0 0 9px;
+  color: var(--pvf-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .history-list,
+.pvf-calculator .pinned-highlights {
+  display: grid;
+  gap: 8px;
+}
+
+.pvf-calculator .history-empty {
+  min-height: 58px;
+  display: grid;
+  place-items: center;
+  color: var(--pvf-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.pvf-calculator .history-row,
+.pvf-calculator .highlight-row {
+  padding: 10px 11px;
+}
+
+.pvf-calculator .history-row header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pvf-calculator .history-row header strong,
+.pvf-calculator .highlight-row strong {
+  color: var(--pvf-ink);
+}
+
+.pvf-calculator .history-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.pvf-calculator .history-metrics span {
+  border: 1px solid var(--pvf-line);
+  border-radius: 999px;
+  padding: 2px 7px;
+  color: var(--pvf-ink);
+  background: color-mix(in srgb, var(--pvf-surface) 88%, var(--pvf-bg));
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pvf-calculator .highlight-row {
+  display: grid;
+  gap: 4px;
+}
+
+.pvf-calculator .risk-summary,
+.pvf-calculator .risk-evidence,
+.pvf-calculator .risk-recommendations,
+.pvf-calculator .risk-breakdown,
+.pvf-calculator .risk-brief,
+.pvf-calculator .risk-bars-panel,
+.pvf-calculator .team-assessment,
+.pvf-calculator .team-leaderboard-panel,
+.pvf-calculator .technical-payload {
+  border: 1px solid var(--pvf-line);
+  border-radius: 8px;
+  background: var(--pvf-surface);
+  color: var(--pvf-ink);
+}
+
+.pvf-calculator .team-assessment,
+.pvf-calculator .team-leaderboard-panel {
+  padding: 16px;
+}
+
+.pvf-calculator .team-assessment {
+  display: grid;
+  gap: 15px;
+  border-left: 5px solid #15803d;
+  background:
+    linear-gradient(90deg, rgba(146, 194, 50, 0.12), transparent 42%),
+    var(--pvf-surface);
+}
+
+.pvf-calculator .team-assessment.decision-medium {
+  border-left-color: var(--pvf-amber);
+  background:
+    linear-gradient(90deg, rgba(183, 121, 31, 0.12), transparent 42%),
+    var(--pvf-surface);
+}
+
+.pvf-calculator .team-assessment.decision-high {
+  border-left-color: var(--pvf-red);
+  background:
+    linear-gradient(90deg, rgba(220, 38, 38, 0.1), transparent 42%),
+    var(--pvf-surface);
+}
+
+.pvf-calculator .team-assessment-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 148px;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.pvf-calculator .team-kicker,
+.pvf-calculator .team-score-box span,
+.pvf-calculator .team-assessment-item span,
+.pvf-calculator .team-leaderboard-panel > header span,
+.pvf-calculator .team-rank-badge span,
+.pvf-calculator .team-stat span {
+  display: block;
+  color: var(--pvf-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .team-assessment h3 {
+  margin: 5px 0 8px;
+  overflow: hidden;
+  color: var(--pvf-ink);
+  font-size: 1.55rem;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+}
+
+.pvf-calculator .team-assessment p,
+.pvf-calculator .team-rank-identity p {
+  margin: 0;
+  color: var(--pvf-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.pvf-calculator .team-score-box {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  border: 1px solid var(--pvf-soft-line);
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--pvf-surface) 91%, var(--pvf-bg));
+}
+
+.pvf-calculator .team-score-box strong {
+  color: var(--pvf-ink);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.pvf-calculator .team-score-box em {
+  color: var(--pvf-muted);
+  font-style: normal;
+  font-weight: 800;
+}
+
+.pvf-calculator .team-fit-meter {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pvf-line) 70%, transparent);
+}
+
+.pvf-calculator .team-fit-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #15803d;
+}
+
+.pvf-calculator .team-fit-watch .team-fit-meter span {
+  background: var(--pvf-amber);
+}
+
+.pvf-calculator .team-fit-review .team-fit-meter span {
+  background: var(--pvf-red);
+}
+
+.pvf-calculator .team-assessment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.pvf-calculator .team-assessment-item {
+  min-width: 0;
+  border: 1px solid var(--pvf-soft-line);
+  border-radius: 8px;
+  padding: 10px 11px;
+  background: color-mix(in srgb, var(--pvf-surface) 94%, var(--pvf-bg));
+}
+
+.pvf-calculator .team-assessment-item strong {
+  display: block;
+  margin-top: 4px;
+  overflow: hidden;
+  color: var(--pvf-ink);
+  font-size: 0.94rem;
+  text-overflow: ellipsis;
+}
+
+.pvf-calculator .team-leaderboard-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.pvf-calculator .team-leaderboard-panel > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pvf-calculator .team-leaderboard-panel h3 {
+  margin: 0;
+  color: var(--pvf-muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .team-rank-list {
+  display: grid;
+  gap: 9px;
+}
+
+.pvf-calculator .team-rank-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+  border: 1px solid var(--pvf-soft-line);
+  border-left: 5px solid #15803d;
+  border-radius: 8px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--pvf-surface) 94%, var(--pvf-bg));
+}
+
+.pvf-calculator .team-rank-card.team-fit-watch {
+  border-left-color: var(--pvf-amber);
+}
+
+.pvf-calculator .team-rank-card.team-fit-review {
+  border-left-color: var(--pvf-red);
+}
+
+.pvf-calculator .team-rank-card.is-selected {
+  border-color: color-mix(in srgb, var(--pvf-green) 72%, var(--pvf-line));
+  box-shadow: inset 0 0 0 1px rgba(146, 194, 50, 0.25);
+}
+
+.pvf-calculator .team-rank-badge {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--pvf-soft-line);
+  border-radius: 8px;
+  background: var(--pvf-surface);
+  text-align: center;
+}
+
+.pvf-calculator .team-rank-badge strong {
+  color: var(--pvf-ink);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.15rem;
+}
+
+.pvf-calculator .team-rank-identity {
+  min-width: 0;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.pvf-calculator .team-rank-name-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pvf-calculator .team-rank-name-row strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--pvf-ink);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvf-calculator .team-rank-name-row span {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--pvf-green) 72%, var(--pvf-line));
+  border-radius: 999px;
+  padding: 3px 7px;
+  color: #416409;
+  background: rgba(146, 194, 50, 0.12);
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator.is-dark .team-rank-name-row span {
+  color: #d8f59a;
+}
+
+.pvf-calculator .team-rank-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pvf-calculator .team-stat {
+  min-width: 0;
+  border: 1px solid var(--pvf-soft-line);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--pvf-surface);
+}
+
+.pvf-calculator .team-stat strong {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--pvf-ink);
+  font-size: 0.84rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pvf-calculator .team-rank-empty {
+  min-height: 76px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--pvf-line);
+  border-radius: 8px;
+  color: var(--pvf-muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.pvf-calculator .risk-metric {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--pvf-surface);
+}
+
+.pvf-calculator .risk-metric::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: #15803d;
+}
+
+.pvf-calculator .risk-metric.risk-medium::before {
+  background: var(--pvf-amber);
+}
+
+.pvf-calculator .risk-metric.risk-high::before {
+  background: var(--pvf-red);
+}
+
+.pvf-calculator .risk-summary-item,
+.pvf-calculator .risk-evidence-item,
+.pvf-calculator .risk-brief-item,
+.pvf-calculator .risk-breakdown-row,
+.pvf-calculator .risk-bar-row {
+  border-color: var(--pvf-soft-line);
+  background: color-mix(in srgb, var(--pvf-surface) 94%, var(--pvf-bg));
+}
+
+.pvf-calculator .technical-payload pre {
+  color: var(--pvf-ink);
+  background: color-mix(in srgb, var(--pvf-surface) 90%, var(--pvf-bg));
+}
+
+.pvf-calculator .risk-summary h3,
+.pvf-calculator .risk-evidence h3,
+.pvf-calculator .risk-recommendations h3,
+.pvf-calculator .risk-breakdown h3,
+.pvf-calculator .risk-brief h3,
+.pvf-calculator .risk-bars-panel h3 {
+  color: var(--pvf-muted);
+}
+
+.pvf-calculator .risk-summary-item span,
+.pvf-calculator .risk-evidence-item span,
+.pvf-calculator .risk-brief-item span {
+  display: block;
+  color: var(--pvf-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pvf-calculator .risk-summary-item strong,
+.pvf-calculator .risk-evidence-item strong,
+.pvf-calculator .risk-brief-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--pvf-ink);
+  font-size: 0.94rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pvf-calculator .risk-metric span,
+.pvf-calculator .risk-breakdown-row span,
+.pvf-calculator .risk-bar-head span,
+.pvf-calculator .risk-bar-row p,
+.pvf-calculator .risk-recommendations li {
+  color: var(--pvf-muted);
+}
+
+.pvf-calculator .risk-metric strong,
+.pvf-calculator .risk-metric em,
+.pvf-calculator .risk-breakdown-row strong,
+.pvf-calculator .risk-bar-head strong {
+  color: var(--pvf-ink);
+}
+
+.pvf-calculator.is-dark .risk-brief.decision-medium,
+.pvf-calculator.is-dark .risk-recommendations {
+  background: #29261f;
+}
+
+.pvf-calculator.is-dark .risk-brief.decision-high {
+  background: #2c2224;
+}
+
+@media (max-width: 1060px) {
+  .pvf-calculator .pvf-header {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .pvf-calculator .pvf-brand,
+  .pvf-calculator .pvf-header-actions {
+    justify-self: center;
+  }
+
+  .pvf-calculator .pvf-calculator-grid,
+  .pvf-calculator .pvf-support-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .pvf-calculator .pvf-command-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pvf-calculator .team-rank-card {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .pvf-calculator .team-rank-stats {
+    grid-column: 1 / -1;
+  }
+
+  .pvf-calculator .pvf-project-card {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .pvf-calculator .pvf-shell {
+    width: min(calc(100vw - 22px), 1152px);
+    margin-top: 22px;
+  }
+
+  .pvf-calculator .pvf-header-actions,
+  .pvf-calculator .pvf-target-chip,
+  .pvf-calculator .pvf-ops-link,
+  .pvf-calculator .pvf-dark-toggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .pvf-calculator .pvf-rule {
+    margin: 22px 0 24px;
+  }
+
+  .pvf-calculator .pvf-card-title,
+  .pvf-calculator .pvf-card-body {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .pvf-calculator .pvf-results-heading,
+  .pvf-calculator .pvf-panel-heading,
+  .pvf-calculator .pvf-form-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pvf-calculator .rail-context-grid,
+  .pvf-calculator .intelligence-grid-v2,
+  .pvf-calculator .pvf-command-strip,
+  .pvf-calculator .pvf-project-preview,
+  .pvf-calculator .pvf-decision-strip,
+  .pvf-calculator .team-assessment-main,
+  .pvf-calculator .team-assessment-grid,
+  .pvf-calculator .team-rank-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pvf-calculator .team-rank-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
