@@ -9,7 +9,7 @@ import json
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -19,6 +19,7 @@ from app.platform import (
     get_job_intake_template,
     list_profile_entities,
     portal_reference_data,
+    predict_records,
     predict_new_job_with_profiles,
     profile_data,
     scaffolder_job_predictions,
@@ -42,6 +43,11 @@ app = FastAPI(
 )
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+@app.get("/favicon.ico")
+def _favicon() -> RedirectResponse:
+    return RedirectResponse(url="/static/favicon.svg")
 
 
 def _experiment_summary(record: dict[str, Any]) -> dict[str, Any]:
@@ -253,6 +259,20 @@ def api_worker_predict(payload: dict[str, Any]) -> dict[str, Any]:
             job_record=job_record,
             dataset_path=dataset_path,
         )
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.post("/api/active-model/predict")
+def api_active_model_predict(payload: dict[str, Any]) -> dict[str, Any]:
+    job_record = payload.get("job_record")
+    if not isinstance(job_record, dict) or not job_record:
+        raise HTTPException(status_code=400, detail="job_record must be a non-empty object.")
+
+    experiment_id = _resolve_active_experiment_id()
+
+    try:
+        return predict_records(experiment_id=experiment_id, records=[job_record])
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 

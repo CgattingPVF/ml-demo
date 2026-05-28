@@ -3,6 +3,8 @@ const workerState = {
   referenceData: {},
   history: [],
   latestResult: null,
+  latestMlPrediction: null,
+  activeModel: null,
 };
 
 const MAX_SELECT_LABEL_LENGTH = 64;
@@ -42,6 +44,19 @@ function formatSignedPercent(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "N/A";
   return `${number > 0 ? "+" : ""}${formatPercent(number)}`;
+}
+
+function taskLabel(task) {
+  if (task === "classification") return "Classification";
+  if (task === "regression") return "Regression";
+  return "Model";
+}
+
+function setActiveTaskMode(task) {
+  document.body.classList.remove("active-task-classification", "active-task-regression");
+  if (task === "classification" || task === "regression") {
+    document.body.classList.add(`active-task-${task}`);
+  }
 }
 
 function formatDate(value) {
@@ -107,6 +122,80 @@ function setDecisionStrip(items, className = "") {
     item.append(labelNode, valueNode);
     strip.appendChild(item);
   }
+}
+
+function formatModelPredictionValue(target, value) {
+  const targetText = String(target || "").toLowerCase();
+  if (value === null || value === undefined || value === "") return "N/A";
+  if (
+    targetText.includes("revenue") ||
+    targetText.includes("cost") ||
+    targetText.includes("price") ||
+    targetText.includes("budget")
+  ) {
+    return formatCurrency(value);
+  }
+  const number = Number(value);
+  if (Number.isFinite(number)) {
+    return formatNumber(number, { maximumFractionDigits: 2 });
+  }
+  return String(value);
+}
+
+function updateMlPredictionPanel(payload = null, status = "") {
+  const output = document.getElementById("ml-prediction-output");
+  const activeModel = workerState.activeModel || {};
+  const target = activeModel.target_column || "Active target";
+  const task = activeModel.task_type || "";
+  setText("ml-panel-target", `${target} | ${taskLabel(task)}`);
+  setText("ml-panel-state", status || "Uses reviewed active model");
+  if (!output) return;
+
+  output.innerHTML = "";
+  if (status && !payload) {
+    const state = document.createElement("div");
+    state.className = "pvf-model-empty";
+    state.textContent = status;
+    output.appendChild(state);
+    return;
+  }
+  if (payload?.error) {
+    const error = document.createElement("div");
+    error.className = "pvf-model-error";
+    error.textContent = payload.error;
+    output.appendChild(error);
+    setText("ml-panel-state", "Prediction unavailable");
+    return;
+  }
+  const prediction = payload?.predictions?.[0];
+  if (prediction === undefined) {
+    const empty = document.createElement("div");
+    empty.className = "pvf-model-empty";
+    empty.textContent = "Run an assessment to see the active model prediction for this job.";
+    output.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "pvf-model-grid";
+  const confidence = payload?.confidence?.[0];
+  const items = [
+    ["Prediction", formatModelPredictionValue(target, prediction)],
+    ["Target", target],
+    ["Task", taskLabel(task)],
+    ["Confidence", confidence === undefined ? "N/A" : formatPercent(Number(confidence) * 100)],
+  ];
+  for (const [label, value] of items) {
+    const item = document.createElement("div");
+    const labelNode = document.createElement("span");
+    const valueNode = document.createElement("strong");
+    labelNode.textContent = label;
+    valueNode.textContent = value;
+    valueNode.title = value;
+    item.append(labelNode, valueNode);
+    grid.appendChild(item);
+  }
+  output.appendChild(grid);
 }
 
 function populateSelect(id, values, placeholder) {
@@ -319,6 +408,59 @@ function formatValue(value, suffix = "") {
   return `${value}${suffix}`;
 }
 
+const TEAM_STAT_HELP = {
+  Fit: "Overall match score for this team on the current job, combining delivery history, similar work, safety signals and price fit.",
+  Comp: "Completion rate from this team's historical jobs. Higher means more of their jobs reached completion rather than staying open, cancelled or postponed.",
+  Cancel: "Cancellation or postponement rate for this team. Lower is better and suggests fewer disrupted jobs.",
+  Similar: "Number of historic jobs used as a close comparison for this team, based on job type, postcode area and commercial profile.",
+  Median: "Median historic price for comparable work by this team. Use this as the central benchmark rather than an outlier-sensitive average.",
+  Delta: "Difference between the quoted job price and this team's median comparable price. Negative means the quote is below the team's usual benchmark; positive means above.",
+  HSE: "Historic health, safety or incident signal rate for this team's jobs. Lower is better.",
+  Jobs: "Total historic jobs found for this team in the dataset. Higher counts usually make the other signals more reliable.",
+};
+
+const INFO_ITEM_HELP = {
+  Decision: "Recommended operating decision for this assessment based on the strongest risk and delivery signals.",
+  "Priority Signal": "The signal that most needs review before booking or handover.",
+  "Best Match": "Top-ranked team based on the current job details and historical team performance.",
+  "Compared Teams": "Number of teams considered when creating the shortlist.",
+  Completion: "Estimated or historical completion performance. Higher is usually better.",
+  Cancellation: "Estimated or historical cancellation/postponement pressure. Lower is usually better.",
+  Priority: "The most important issue to address before the job proceeds.",
+  Reason: "Plain-language summary of why the recommendation was chosen.",
+  "Evidence Base": "How many comparable jobs and team records support the assessment.",
+  "Commercial View": "Margin or commercial context calculated from the supplied job price and cost.",
+  "Work Window": "The start-to-due date window entered for this assessment.",
+  "Quoted Price": "The job price entered in the project form.",
+  "Scaffold Cost": "Optional cost input used to estimate gross margin.",
+  "Gross Margin": "Quoted price minus supplied scaffold cost.",
+  "Margin %": "Gross margin as a percentage of quoted price.",
+  "Median Scaffolder Price": "Median comparable price for the selected scaffolder or matched team context.",
+  "Price vs Median": "Difference between the quoted price and the relevant median benchmark.",
+  "Average Scaffolder Price": "Average comparable price for the selected scaffolder or matched team context.",
+  "Postcode Area": "Outward postcode area used when comparing similar jobs.",
+  "Scaffolder jobs": "Total historical jobs available for the selected scaffolder.",
+  "Similar jobs": "Comparable historical jobs used to support this assessment.",
+  "HSE events": "Historical health and safety events detected in the matched evidence.",
+  "Damage events": "Historical damage or claim events detected in the matched evidence.",
+  "Avg price": "Average price across matched historical evidence.",
+  "Median price": "Median price across matched historical evidence.",
+};
+
+function addMetricTooltip(item, label, value, detail) {
+  if (!detail) return;
+
+  item.classList.add("has-metric-tooltip");
+  item.tabIndex = 0;
+  item.setAttribute("aria-label", `${label}: ${value}. ${detail}`);
+
+  const tooltip = document.createElement("span");
+  tooltip.className = "metric-tooltip";
+  tooltip.setAttribute("role", "tooltip");
+  tooltip.textContent = detail;
+  item.appendChild(tooltip);
+}
+
 function appendInfoItem(container, label, value, className = "risk-summary-item") {
   const item = document.createElement("div");
   item.className = className;
@@ -331,6 +473,7 @@ function appendInfoItem(container, label, value, className = "risk-summary-item"
   valueNode.title = valueNode.textContent;
 
   item.append(labelNode, valueNode);
+  addMetricTooltip(item, label, valueNode.textContent, INFO_ITEM_HELP[label]);
   container.appendChild(item);
 }
 
@@ -386,6 +529,7 @@ function appendTeamStat(container, label, value) {
   valueNode.title = valueNode.textContent;
 
   stat.append(labelNode, valueNode);
+  addMetricTooltip(stat, label, valueNode.textContent, TEAM_STAT_HELP[label]);
   container.appendChild(stat);
 }
 
@@ -841,10 +985,10 @@ function renderIntelligence() {
   const historyList = document.getElementById("history-list");
   const pinned = document.getElementById("pinned-highlights");
   const count = document.getElementById("history-count-label");
+  setText("overview-runs", workerState.history.length);
   if (!historyList || !pinned || !count) return;
 
   count.textContent = `${workerState.history.length} runs`;
-  setText("overview-runs", workerState.history.length);
   historyList.innerHTML = "";
   pinned.innerHTML = "";
 
@@ -927,7 +1071,11 @@ function renderIntelligence() {
 
 function exportLastResult() {
   if (!workerState.latestResult) return;
-  const blob = new Blob([JSON.stringify(workerState.latestResult, null, 2)], { type: "application/json" });
+  const payload = {
+    operational_assessment: workerState.latestResult,
+    active_model_prediction: workerState.latestMlPrediction,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -1009,46 +1157,68 @@ async function calculateRisk() {
         ["Decision", "Calculating"],
         ["Selected Rank", "Ranking teams"],
         ["Best Team", "Matching shortlist"],
-        ["Evidence", "Matching historical jobs"],
+        ["Evidence", "Matching model and historical jobs"],
       ],
       "is-calculating"
     );
-    const result = await api("/api/scaffolder/predict", {
-      method: "POST",
-      body: {
-        dataset_path: workerState.datasetPath,
-        job_record: jobRecord,
-      },
-    });
+    updateMlPredictionPanel(null, "Calculating active model prediction...");
+    const [result, mlPrediction] = await Promise.all([
+      api("/api/scaffolder/predict", {
+        method: "POST",
+        body: {
+          dataset_path: workerState.datasetPath,
+          job_record: jobRecord,
+        },
+      }),
+      api("/api/active-model/predict", {
+        method: "POST",
+        body: {
+          job_record: jobRecord,
+        },
+      }).catch((error) => ({ error: error.message })),
+    ]);
     workerState.latestResult = result;
+    workerState.latestMlPrediction = mlPrediction;
     workerState.history.push(summarizeResult(result));
     if (workerState.history.length > 40) {
       workerState.history = workerState.history.slice(workerState.history.length - 40);
     }
     renderResults(result);
+    updateMlPredictionPanel(mlPrediction);
     renderIntelligence();
   } catch (error) {
     showError(error.message);
+    updateMlPredictionPanel(workerState.latestMlPrediction);
   }
 }
 
 async function loadContext() {
   workerState.datasetPath = document.body.dataset.defaultDataset || "";
+  setText("overview-context", "Loading reference data");
   const active = await api("/api/active-model");
   const model = active.experiment || {};
+  workerState.activeModel = model;
   setText("active-model-label", model.target_column || "Unavailable");
+  setText("active-task-label", taskLabel(model.task_type));
   setText("overview-target", model.target_column || "Unavailable");
+  setActiveTaskMode(model.task_type);
+  updateMlPredictionPanel();
 
-  workerState.referenceData = await api("/api/portal/reference-data", {
-    method: "POST",
-    body: { dataset_path: workerState.datasetPath },
-  });
+  try {
+    workerState.referenceData = await api("/api/portal/reference-data", {
+      method: "POST",
+      body: { dataset_path: workerState.datasetPath },
+    });
+  } catch (error) {
+    workerState.referenceData = {};
+    setText("overview-context", "Reference data unavailable");
+    throw error;
+  }
 
   populateSelect("scaffold-partner", workerState.referenceData.scaffolders, "Select scaffolder");
   populateSelect("scaffold-purpose", workerState.referenceData.scaffold_purposes, "Select job type");
   populateSelect("business-name", workerState.referenceData.businesses, "Optional business");
   populateSelect("scaffold-location", workerState.referenceData.scaffold_locations, "Optional location");
-  populateDatalist("postcode-list", workerState.referenceData.postcodes);
 
   setText("context-scaffolders", compactCount(workerState.referenceData.scaffolders));
   setText("context-businesses", compactCount(workerState.referenceData.businesses));
@@ -1056,7 +1226,7 @@ async function loadContext() {
   setText("context-postcodes", compactCount(workerState.referenceData.postcodes));
   setText(
     "overview-context",
-    `${compactCount(workerState.referenceData.scaffolders)} teams / ${compactCount(workerState.referenceData.postcodes)} postcodes`
+    `${compactCount(workerState.referenceData.scaffolders)} teams / ${compactCount(workerState.referenceData.scaffold_purposes)} job types`
   );
 }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from math import ceil
 from typing import Any
 import warnings
 
@@ -162,7 +163,18 @@ def train_and_select_best(
     y: pd.Series,
     config: TrainConfig,
 ) -> dict[str, Any]:
-    stratify = y if config.task_type == "classification" and y.nunique() > 1 else None
+    stratify = None
+    if config.task_type == "classification" and y.nunique() > 1:
+        class_counts = y.value_counts()
+        test_rows = ceil(len(y) * config.test_size)
+        train_rows = len(y) - test_rows
+        if (
+            not class_counts.empty
+            and int(class_counts.min()) >= 2
+            and test_rows >= len(class_counts)
+            and train_rows >= len(class_counts)
+        ):
+            stratify = y
     x_train, x_test, y_train, y_test = train_test_split(
         x,
         y,
@@ -171,7 +183,6 @@ def train_and_select_best(
         stratify=stratify,
     )
 
-    preprocessor = _build_preprocessor(x)
     models = _candidate_models(config.task_type, config.random_state)
     primary = _primary_metric(config.task_type)
 
@@ -179,28 +190,45 @@ def train_and_select_best(
     best_payload: dict[str, Any] | None = None
 
     for model_name, model in models.items():
+        preprocessor = _build_preprocessor(x)
         pipeline = Pipeline(
             steps=[
                 ("preprocessor", preprocessor),
                 ("model", model),
             ]
         )
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", ConvergenceWarning)
-            pipeline.fit(x_train, y_train)
-            preds = pipeline.predict(x_test)
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                pipeline.fit(x_train, y_train)
+                preds = pipeline.predict(x_test)
 
-        probs = pipeline.predict_proba(x_test) if hasattr(pipeline, "predict_proba") else None
-        if config.task_type == "classification":
-            metrics = _classification_metrics(y_test, preds, probs)
-        else:
-            metrics = _regression_metrics(y_test, preds)
+            probs = pipeline.predict_proba(x_test) if hasattr(pipeline, "predict_proba") else None
+            if config.task_type == "classification":
+                metrics = _classification_metrics(y_test, preds, probs)
+            else:
+                metrics = _regression_metrics(y_test, preds)
+        except Exception as exc:
+            results.append(
+                {
+                    "model_name": model_name,
+                    "metrics": {},
+                    "primary_metric_name": primary,
+                    "primary_metric_value": float(-np.inf),
+                    "error": str(exc),
+                }
+            )
+            continue
+
+        primary_value = float(metrics.get(primary, -np.inf))
+        if not np.isfinite(primary_value):
+            primary_value = float(-np.inf)
 
         result = {
             "model_name": model_name,
             "metrics": metrics,
             "primary_metric_name": primary,
-            "primary_metric_value": float(metrics.get(primary, -np.inf)),
+            "primary_metric_value": primary_value,
         }
         results.append(result)
 
@@ -212,7 +240,10 @@ def train_and_select_best(
             }
 
     if best_payload is None:
-        raise RuntimeError("Model training failed. No candidates completed.")
+        failures = "; ".join(
+            f"{item['model_name']}: {item.get('error', 'unknown error')}" for item in results
+        )
+        raise RuntimeError(f"Model training failed. No candidates completed. {failures}")
 
     return {
         "results": results,

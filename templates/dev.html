@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/style.css?v=20260528-worker-ui2" />
   </head>
   <body class="layout-dev ux-v2" data-default-dataset="{{ default_dataset_path }}">
     <main class="shell-v2">
@@ -29,12 +29,16 @@
       </aside>
 
       <section class="workspace-v2">
-        <header class="top-v2">
+        <header class="top-v2 ops-top-v2">
           <div>
-            <p class="kicker-v2">Model Operations</p>
-            <h1>Training and Release Control</h1>
+            <p id="dev-mode-kicker" class="kicker-v2">Model Operations</p>
+            <h1 id="dev-page-title">Training and Release Control</h1>
+            <span id="dev-page-subtitle">Profile a dataset, choose a target header, then review candidate models.</span>
           </div>
-          <a class="top-link-v2" href="/">Risk Desk</a>
+          <div class="top-v2-actions">
+            <span id="dev-mode-pill" class="ops-mode-pill">Auto</span>
+            <a class="top-link-v2" href="/">Risk Desk</a>
+          </div>
         </header>
 
         <section class="ops-kpi-grid" aria-label="Model operations summary">
@@ -56,57 +60,83 @@
           </article>
         </section>
 
-        <section class="panel-v2">
-          <div class="panel-head-v2">
-            <h2>Dataset Profile</h2>
-            <span id="ops-dataset-name">Default dataset</span>
-          </div>
-          <div class="dev-grid">
-            <label>
-              Dataset Path
-              <input id="dev-dataset-path" type="text" />
-            </label>
-          </div>
-          <div class="worker-actions">
-            <button id="dev-profile-btn" class="btn">Profile Dataset</button>
-          </div>
-          <div id="dev-profile-output" class="output"></div>
+        <section class="ops-workbench-grid">
+          <section class="panel-v2 ops-setup-panel">
+            <div class="panel-head-v2">
+              <h2>Training Setup</h2>
+              <span id="ops-dataset-name">Default dataset</span>
+            </div>
+            <div class="dev-grid">
+              <label class="wide">
+                Dataset Path
+                <input id="dev-dataset-path" type="text" />
+              </label>
+              <input id="dev-train-dataset-path" type="hidden" />
+              <label class="wide">
+                Target Header
+                <select id="dev-target-select">
+                  <option value="">Profile dataset to choose target</option>
+                </select>
+              </label>
+              <label>
+                Manual Target
+                <input id="dev-target-column" type="text" placeholder="e.g. status_group" />
+              </label>
+              <label>
+                Task Type
+                <select id="dev-task-type">
+                  <option value="">Auto infer from target</option>
+                  <option value="classification">Classification</option>
+                  <option value="regression">Regression</option>
+                </select>
+              </label>
+              <label>
+                Test Size
+                <input id="dev-test-size" type="number" min="0.05" max="0.5" step="0.05" value="0.2" />
+              </label>
+              <label>
+                Random State
+                <input id="dev-random-state" type="number" value="42" />
+              </label>
+            </div>
+            <div id="dev-target-status" class="ops-target-status">Profile the dataset to inspect trainable targets.</div>
+            <div class="worker-actions">
+              <button id="dev-profile-btn" class="btn">Refresh Profile</button>
+              <button id="dev-train-btn" class="btn primary" disabled>Train Candidate</button>
+            </div>
+            <section id="dev-training-progress" class="ops-training-progress" aria-live="polite" hidden>
+              <div class="ops-progress-head">
+                <div>
+                  <span id="dev-progress-kicker">Training</span>
+                  <strong id="dev-progress-title">Preparing candidate run</strong>
+                </div>
+                <em id="dev-progress-percent">0%</em>
+              </div>
+              <div class="ops-progress-track" aria-hidden="true">
+                <span id="dev-progress-bar"></span>
+              </div>
+              <p id="dev-progress-step">Preparing dataset and target profile.</p>
+            </section>
+            <div id="dev-train-output" class="output"></div>
+          </section>
+
+          <section class="panel-v2 ops-intel-panel">
+            <div class="panel-head-v2">
+              <h2 id="dev-intel-title">Header Intelligence</h2>
+              <span id="dev-intel-mode">Awaiting target</span>
+            </div>
+            <div id="dev-target-intel" class="ops-target-intel">
+              <div class="ops-empty-state">Choose a target header to see task type, quality checks, and class or numeric distribution.</div>
+            </div>
+          </section>
         </section>
 
         <section class="panel-v2">
           <div class="panel-head-v2">
-            <h2>Train Candidate Model</h2>
+            <h2>Dataset Profile & Header Map</h2>
+            <span id="dev-profile-summary">Not profiled yet</span>
           </div>
-          <div class="dev-grid">
-            <label>
-              Dataset Path
-              <input id="dev-train-dataset-path" type="text" />
-            </label>
-            <label>
-              Target Column
-              <input id="dev-target-column" type="text" placeholder="e.g. status" />
-            </label>
-            <label>
-              Task Type
-              <select id="dev-task-type">
-                <option value="">Auto</option>
-                <option value="classification">Classification</option>
-                <option value="regression">Regression</option>
-              </select>
-            </label>
-            <label>
-              Test Size
-              <input id="dev-test-size" type="number" min="0.05" max="0.5" step="0.05" value="0.2" />
-            </label>
-            <label>
-              Random State
-              <input id="dev-random-state" type="number" value="42" />
-            </label>
-          </div>
-          <div class="worker-actions">
-            <button id="dev-train-btn" class="btn primary">Train Candidate</button>
-          </div>
-          <div id="dev-train-output" class="output"></div>
+          <div id="dev-profile-output" class="output"></div>
         </section>
 
         <section class="panel-v2">
@@ -136,6 +166,6 @@
       </section>
     </main>
 
-    <script src="/static/js/dev.js"></script>
+    <script src="/static/js/dev.js?v=20260528-dev3"></script>
   </body>
 </html>

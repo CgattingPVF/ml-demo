@@ -56,6 +56,7 @@ python app.py
 - `GET /api/health` - Health status
 - `GET /api/active-model` - Show active production model for worker screen
 - `POST /api/active-model` - Set active production model
+- `POST /api/active-model/predict` - Predict a single job with the reviewed active model
 - `POST /api/profile` - Dataset profiling
 - `POST /api/train` - Train and register best model
 - `GET /api/experiments` - List experiments

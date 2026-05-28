@@ -24,6 +24,10 @@ from app.training import TrainConfig, train_and_select_best
 ACTIVE_STATUS_TOKENS = ("booked", "planned", "awaiting", "rts", "request", "sent")
 CANCELLED_STATUS_TOKENS = ("cancel", "postponed")
 COMPLETED_STATUS_TOKENS = ("down", "completed", "complete", "closed", "handed over")
+IDENTIFIER_TARGET_TOKENS = ("id", "uuid", "guid", "number", "no", "name")
+DATE_TARGET_TOKENS = ("date", "time", "created", "updated", "completed", "due")
+MIN_TRAINING_ROWS = 30
+MAX_RECOMMENDED_CLASSES = 80
 
 
 @lru_cache(maxsize=2)
@@ -45,22 +49,158 @@ def _resolve_target(normalized_df: pd.DataFrame, target_column: str) -> str:
     raise ValueError(f"Target column '{target_column}' not found.")
 
 
+def _target_problem_hint(column: str) -> str:
+    lowered = column.lower()
+    if any(token in lowered for token in DATE_TARGET_TOKENS):
+        return "date"
+    if any(token == lowered or lowered.endswith(f"_{token}") for token in IDENTIFIER_TARGET_TOKENS):
+        return "identifier"
+    return "standard"
+
+
+def _target_numeric_summary(series: pd.Series) -> dict[str, float | int | None]:
+    numeric = pd.to_numeric(series, errors="coerce").dropna()
+    if numeric.empty:
+        return {
+            "valid_numeric_rows": 0,
+            "min": None,
+            "max": None,
+            "mean": None,
+            "median": None,
+            "std": None,
+        }
+    return {
+        "valid_numeric_rows": int(numeric.shape[0]),
+        "min": float(numeric.min()),
+        "max": float(numeric.max()),
+        "mean": float(numeric.mean()),
+        "median": float(numeric.median()),
+        "std": float(numeric.std()) if numeric.shape[0] > 1 else 0.0,
+    }
+
+
+def _target_class_summary(series: pd.Series) -> dict[str, Any]:
+    counts = series.dropna().astype(str).value_counts()
+    return {
+        "class_count": int(counts.shape[0]),
+        "min_class_rows": int(counts.min()) if not counts.empty else 0,
+        "max_class_rows": int(counts.max()) if not counts.empty else 0,
+        "top_classes": {str(k): int(v) for k, v in counts.head(8).to_dict().items()},
+    }
+
+
+def profile_target_column(
+    df: pd.DataFrame,
+    column: str,
+    *,
+    forced_task_type: str | None = None,
+    test_size: float = 0.2,
+) -> dict[str, Any]:
+    series = df[column]
+    non_null = series.dropna()
+    total_rows = int(series.shape[0])
+    non_null_rows = int(non_null.shape[0])
+    unique_count = int(non_null.nunique(dropna=True))
+    unique_ratio = float(unique_count / non_null_rows) if non_null_rows else 0.0
+    missing_pct = float(series.isna().mean() * 100) if total_rows else 0.0
+    recommended_task_type = infer_task_type(non_null, forced=None) if non_null_rows else "classification"
+    chosen_task = forced_task_type or recommended_task_type
+    hint = _target_problem_hint(column)
+    warnings_list: list[str] = []
+    reasons: list[str] = []
+
+    if non_null_rows < MIN_TRAINING_ROWS:
+        reasons.append(f"Only {non_null_rows} non-empty target rows; at least {MIN_TRAINING_ROWS} are required.")
+    if unique_count < 2:
+        reasons.append("Target has fewer than two distinct values.")
+    if missing_pct > 70:
+        reasons.append(f"Target is {missing_pct:.1f}% empty.")
+    elif missing_pct > 30:
+        warnings_list.append(f"Target is {missing_pct:.1f}% empty.")
+
+    profile: dict[str, Any] = {
+        "column": column,
+        "dtype": str(series.dtype),
+        "rows": total_rows,
+        "non_null_rows": non_null_rows,
+        "missing_pct": round(missing_pct, 2),
+        "unique_count": unique_count,
+        "unique_ratio": round(unique_ratio, 4),
+        "recommended_task_type": recommended_task_type,
+        "effective_task_type": chosen_task,
+        "problem_hint": hint,
+        "warnings": warnings_list,
+        "reasons": reasons,
+    }
+
+    if chosen_task == "regression":
+        numeric_summary = _target_numeric_summary(series)
+        valid_numeric_rows = int(numeric_summary["valid_numeric_rows"] or 0)
+        numeric_unique = int(pd.to_numeric(series, errors="coerce").dropna().nunique())
+        if valid_numeric_rows < MIN_TRAINING_ROWS:
+            reasons.append(
+                f"Regression target has only {valid_numeric_rows} numeric rows; at least {MIN_TRAINING_ROWS} are required."
+            )
+        if numeric_unique < 5:
+            reasons.append("Regression target needs at least five distinct numeric values.")
+        if hint == "identifier":
+            reasons.append("Target looks like an identifier or name rather than a measurable outcome.")
+        if hint == "date":
+            warnings_list.append("Date-like targets should usually be converted into duration or delay targets first.")
+        profile["stats"] = numeric_summary | {"numeric_unique_count": numeric_unique}
+    else:
+        class_summary = _target_class_summary(series)
+        class_count = int(class_summary["class_count"])
+        min_class_rows = int(class_summary["min_class_rows"])
+        test_rows = int(round(non_null_rows * test_size))
+        train_rows = non_null_rows - test_rows
+        if min_class_rows < 2:
+            reasons.append("At least one class has only one row, so a stable train/test split is not possible.")
+        if class_count > MAX_RECOMMENDED_CLASSES or unique_ratio > 0.35:
+            reasons.append(
+                "Target has too many distinct classes for a useful classification model; choose a grouped outcome."
+            )
+        if test_rows < class_count or train_rows < class_count:
+            reasons.append("There are too many classes for the selected test size.")
+        if hint == "identifier":
+            reasons.append("Target looks like an identifier or name rather than an outcome.")
+        if hint == "date":
+            warnings_list.append("Date-like targets usually perform better as engineered delay or duration outcomes.")
+        profile["stats"] = class_summary
+
+    is_trainable = not reasons
+    quality = "ready" if is_trainable and not warnings_list else "review" if is_trainable else "blocked"
+    profile["is_trainable"] = is_trainable
+    profile["quality"] = quality
+    return profile
+
+
+def profile_target_columns(df: pd.DataFrame, max_items: int = 250) -> list[dict[str, Any]]:
+    return [profile_target_column(df, col) for col in list(df.columns)[:max_items]]
+
+
 def list_target_candidates(df: pd.DataFrame, max_items: int = 150) -> list[str]:
-    candidates = []
-    for col in df.columns:
-        unique = df[col].nunique(dropna=True)
-        if unique < 2:
-            continue
-        if df[col].isna().mean() > 0.7:
-            continue
-        candidates.append(col)
+    profiles = profile_target_columns(df, max_items=max_items * 2)
+    candidates = [
+        profile["column"]
+        for profile in profiles
+        if profile["is_trainable"] and profile["quality"] in {"ready", "review"}
+    ]
     return candidates[:max_items]
 
 
 def profile_data(path: str | Path) -> dict[str, Any]:
     df = _load_normalized_dataset(path)
     profile = dataset_profile(df)
-    profile["target_candidates"] = list_target_candidates(df)
+    target_profiles = profile_target_columns(df)
+    profile["target_profiles"] = target_profiles
+    profile["target_candidates"] = [
+        item["column"]
+        for item in target_profiles
+        if item["is_trainable"] and item["quality"] in {"ready", "review"}
+    ]
+    profile["column_count"] = int(df.shape[1])
+    profile["column_names"] = list(df.columns)
     profile["columns"] = list(df.columns)
     return profile
 
@@ -75,12 +215,26 @@ def train_model(
 ) -> dict[str, Any]:
     df = _load_normalized_dataset(dataset_path)
     resolved_target = _resolve_target(df, target_column)
+    target_profile = profile_target_column(
+        df,
+        resolved_target,
+        forced_task_type=task_type,
+        test_size=test_size,
+    )
+    chosen_task = target_profile["effective_task_type"]
+    if not target_profile["is_trainable"]:
+        reasons = " ".join(target_profile["reasons"])
+        raise ValueError(f"Target '{resolved_target}' is not trainable as {chosen_task}. {reasons}")
 
     x, y, prep_info = sanitize_training_frame(df, resolved_target)
-    chosen_task = infer_task_type(y, forced=task_type)
 
     # Convert target into numeric when task is regression but values are strings.
     if chosen_task == "regression" and not pd.api.types.is_numeric_dtype(y):
+        y = pd.to_numeric(y, errors="coerce")
+        mask = y.notna()
+        x = x.loc[mask]
+        y = y.loc[mask]
+    if chosen_task == "regression":
         y = pd.to_numeric(y, errors="coerce")
         mask = y.notna()
         x = x.loc[mask]
@@ -98,6 +252,7 @@ def train_model(
             "train_rows": result["train_rows"],
             "test_rows": result["test_rows"],
             "task_type": chosen_task,
+            "target_profile": target_profile,
         },
         "feature_importance": result["feature_importance"],
         "feature_columns": prep_info["feature_columns"],
@@ -124,6 +279,7 @@ def train_model(
         "best_metrics": result["best_metrics"],
         "all_results": result["results"],
         "feature_importance": result["feature_importance"],
+        "target_profile": target_profile,
     }
 
 
